@@ -141,6 +141,7 @@ static void get_vgm_length( Vgm_Emu::header_t const& h, track_info_t* out )
 			out->length = length; // 1000 / 44100 (VGM files used 44100 as timebase)
 			out->intro_length = length; // make it clear that track is no longer than length
 			out->loop_length = 0;
+			out->fade_length = 0;
 		}
 	}
 }

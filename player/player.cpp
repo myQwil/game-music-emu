@@ -118,6 +118,10 @@ int main( int argc, char** argv )
 			path = argv[i];
 	}
 
+	// Set volume
+	double volume = 0.1;
+	player->set_volume( volume );
+
 	// Load file
 	handle_error( player->load_file( path, by_mem ) );
 	start_track( 1, path );
@@ -226,12 +230,14 @@ int main( int argc, char** argv )
 					player->mute_voices( muting_mask );
 					break;
 
-				case SDL_SCANCODE_DOWN: // Seek back
-					player->seek_backward();
+				case SDL_SCANCODE_DOWN: // Volume down
+					volume = std::max(0.001, volume * 8 / 9);
+					player->set_volume( volume );
 					break;
 
-				case SDL_SCANCODE_UP: // Seek forward
-					player->seek_forward();
+				case SDL_SCANCODE_UP: // Volume up
+					volume = std::min(volume * 9 / 8, 1.0);
+					player->set_volume( volume );
 					break;
 
 				case SDL_SCANCODE_H: // help

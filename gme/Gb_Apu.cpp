@@ -49,6 +49,7 @@ Gb_Apu::Gb_Apu()
 		osc.outputs [3] = nullptr;
 	}
 
+	regs[vol_reg - start_addr] = 0;
 	set_tempo( 1.0 );
 	volume( 1.0 );
 	reset();

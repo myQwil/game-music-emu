@@ -140,7 +140,8 @@ gme_err_t gme_identify_file( const char* path, gme_type_t* type_out )
 	return nullptr;
 }
 
-gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate )
+gme_err_t gme_open_data( void const* data, long size, Music_Emu** out,
+int sample_rate, int multi )
 {
 	require( (data || !size) && out );
 	*out = nullptr;
@@ -151,7 +152,8 @@ gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sampl
 	if ( !file_type )
 		return gme_wrong_file_type;
 
-	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
+	Music_Emu* emu = multi ? gme_new_emu_multi_channel( file_type, sample_rate )
+	                       : gme_new_emu( file_type, sample_rate );
 	CHECK_ALLOC( emu );
 
 	gme_err_t err = gme_load_data( emu, data, size );
@@ -164,7 +166,8 @@ gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sampl
 	return err;
 }
 
-gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
+gme_err_t gme_open_file( const char* path, Music_Emu** out,
+int sample_rate, int multi )
 {
 	require( path && out );
 	*out = nullptr;
@@ -185,7 +188,8 @@ gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 			return gme_wrong_file_type;
 	}
 
-	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
+	Music_Emu* emu = multi ? gme_new_emu_multi_channel( file_type, sample_rate )
+	                       : gme_new_emu( file_type, sample_rate );
 	CHECK_ALLOC( emu );
 
 	// optimization: avoids seeking/re-reading header

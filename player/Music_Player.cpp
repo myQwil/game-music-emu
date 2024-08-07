@@ -138,7 +138,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 
 		SDL_RWclose(file);
 
-		const char *ret = gme_open_data( buf, (long)fileSize, &emu_, sample_rate );
+		const char *ret = gme_open_data( buf, (long)fileSize, &emu_, sample_rate, 0 );
 		SDL_free(buf);
 		RETURN_ERR( ret );
 	}
@@ -186,7 +186,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 			RETURN_ERR( gme_load_tracks( emu_, buf.begin(), sizes.begin(), n ) );
 		}
 		else
-			RETURN_ERR( gme_open_file( path, &emu_, sample_rate ) );
+			RETURN_ERR( gme_open_file( path, &emu_, sample_rate, 0 ) );
 	}
 
 	char m3u_path [256 + 5];

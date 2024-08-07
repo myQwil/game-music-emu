@@ -36,7 +36,8 @@ typedef struct Music_Emu Music_Emu;
 /******** Basic operations ********/
 
 /* Create emulator and load game music file/data into it. Sets *out to new emulator. */
-BLARGG_EXPORT gme_err_t gme_open_file( const char path [], Music_Emu** out, int sample_rate );
+BLARGG_EXPORT gme_err_t gme_open_file( const char path [], Music_Emu** out,
+int sample_rate, int multi );
 
 /* Number of tracks available */
 BLARGG_EXPORT int gme_track_count( Music_Emu const* );
@@ -245,9 +246,9 @@ BLARGG_EXPORT int gme_multi_channel( Music_Emu const* );
 /* Error returned if file type is not supported */
 extern BLARGG_EXPORT const char* const gme_wrong_file_type;
 
-/* Same as gme_open_file(), but uses file data already in memory. Makes copy of data.
- * The resulting Music_Emu object will be set to single channel mode. */
-BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate );
+/* Same as gme_open_file(), but uses file data already in memory. Makes copy of data. */
+BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** out,
+int sample_rate, int multi );
 
 /* Determine likely game music type based on first four bytes of file. Returns
 string containing proper file suffix (i.e. "NSF", "SPC", etc.) or "" if

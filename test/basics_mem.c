@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
 	/* Open music file in new emulator */
 	Music_Emu* emu;
-	handle_error( gme_open_data(file_data, (long)file_size, &emu, sample_rate) );
+	handle_error( gme_open_data(file_data, (long)file_size, &emu, sample_rate, 0) );
 	/* File dump is no more needed */
 	free(file_data);
 

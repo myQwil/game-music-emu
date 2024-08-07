@@ -27,6 +27,7 @@ static int const scope_height = 512;
 #include <stdlib.h>
 #include <stdio.h>
 #include "SDL.h"
+#include <cmath>
 
 static const char *usage = R"(
 Left/Right  Change track
@@ -73,13 +74,8 @@ static void init( void )
 	player->set_scope_buffer( scope_buf, scope_width * 2 );
 }
 
-static void start_track( int track, const char* path )
+static void update_window_title(  int track, const char* path, int dB )
 {
-	paused = false;
-	handle_error( player->start_track( track - 1 ) );
-
-	// update window title with track info
-
 	long seconds = player->track_info().length / 1000;
 	const char* game = player->track_info().game;
 	if ( !*game )
@@ -94,13 +90,26 @@ static void start_track( int track, const char* path )
 			game++; // skip path separator
 	}
 
+	char decibel [4];
+	if (dB <= -60)
+		memcpy(decibel, "-∞", 4);
+	else
+		snprintf(decibel, sizeof decibel, "%+d", dB);
+
 	char title [512];
-	if ( 0 < snprintf( title, sizeof title, "%s: %d/%d %s (%ld:%02ld)",
+	if ( 0 < snprintf( title, sizeof title, "%s: %d/%d %s (%ld:%02ld) %s dB",
 			game, track, player->track_count(), player->track_info().song,
-			seconds / 60, seconds % 60 ) )
+			seconds / 60, seconds % 60, decibel ) )
 	{
 		scope->set_caption( title );
 	}
+}
+
+static void start_track( int track, const char* path, int dB )
+{
+	paused = false;
+	handle_error( player->start_track( track - 1 ) );
+	update_window_title( track, path, dB );
 }
 
 int main( int argc, char** argv )
@@ -118,9 +127,14 @@ int main( int argc, char** argv )
 			path = argv[i];
 	}
 
+	// Set volume
+	int dB = -20;
+	const double k = M_LN10 / 20;
+	player->set_volume( exp( k * dB ) );
+
 	// Load file
 	handle_error( player->load_file( path, by_mem ) );
-	start_track( 1, path );
+	start_track( 1, path, dB );
 
 	// Main loop
 	int track = 1;
@@ -140,7 +154,7 @@ int main( int argc, char** argv )
 		if ( player->track_ended() )
 		{
 			if ( track < player->track_count() )
-				start_track( ++track, path );
+				start_track( ++track, path, dB );
 			else
 				player->pause( paused = true );
 		}
@@ -167,12 +181,12 @@ int main( int argc, char** argv )
 				case SDL_SCANCODE_LEFT: // prev track
 					if ( !paused && !--track )
 						track = 1;
-					start_track( track, path );
+					start_track( track, path, dB );
 					break;
 
 				case SDL_SCANCODE_RIGHT: // next track
 					if ( track < player->track_count() )
-						start_track( ++track, path );
+						start_track( ++track, path, dB );
 					break;
 
 				case SDL_SCANCODE_MINUS: // reduce tempo
@@ -226,12 +240,16 @@ int main( int argc, char** argv )
 					player->mute_voices( muting_mask );
 					break;
 
-				case SDL_SCANCODE_DOWN: // Seek back
-					player->seek_backward();
+				case SDL_SCANCODE_DOWN: // Volume down
+					dB = std::max(-60, dB - 1);
+					player->set_volume( dB <= -60 ? 0 : exp( k * dB ) );
+					update_window_title( track, path, dB );
 					break;
 
-				case SDL_SCANCODE_UP: // Seek forward
-					player->seek_forward();
+				case SDL_SCANCODE_UP: // Volume up
+					dB = std::min(dB + 1, 0);
+					player->set_volume( exp( k * dB ) );
+					update_window_title( track, path, dB );
 					break;
 
 				case SDL_SCANCODE_H: // help

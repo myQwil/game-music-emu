@@ -666,7 +666,6 @@ Spc_Dsp::Spc_Dsp()
 void Spc_Dsp::init( void* ram_64k )
 {
 	m.ram = (uint8_t*) ram_64k;
-	mute_voices( 0 );
 	disable_surround( false );
 	disable_echo( false );
 	set_output( nullptr, 0 );

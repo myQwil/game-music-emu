@@ -334,11 +334,11 @@ blargg_err_t Spc_Emu::play_and_filter( long count, sample_t out [] )
 
 blargg_err_t Spc_Emu::skip_( long count )
 {
-	if ( sample_rate() != native_sample_rate )
-	{
-		count = long (count * resampler.ratio()) & ~1;
-		count -= resampler.skip_input( count );
-	}
+	// if ( sample_rate() != native_sample_rate )
+	// {
+	// 	count = long (count * resampler.ratio()) & ~1;
+	// 	count -= resampler.skip_input( count );
+	// }
 
 	// TODO: shouldn't skip be adjusted for the 64 samples read afterwards?
 

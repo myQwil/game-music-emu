@@ -33,6 +33,7 @@ Vgm_Emu::Vgm_Emu()
 	psg_dual = false;
 	psg_t6w28 = false;
 	psg_rate   = 0;
+	psg_dual   = false;
 	set_type( gme_vgm_type );
 
 	static int const types [8] = {

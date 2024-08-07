@@ -64,6 +64,7 @@ Music_Player::Music_Player()
 	scope_buf   = nullptr;
 	paused      = false;
 	track_info_ = nullptr;
+	volume      = 0;
 }
 
 gme_err_t Music_Player::init( long rate )
@@ -287,6 +288,11 @@ void Music_Player::set_echo_disable( bool d )
 	resume();
 }
 
+void Music_Player::set_volume( double vol )
+{
+	volume = vol;
+}
+
 void Music_Player::mute_voices( int mask )
 {
 	suspend();
@@ -327,6 +333,8 @@ void Music_Player::fill_buffer( void* data, sample_t* out, int count )
 
 		if ( self->scope_buf )
 			memcpy( self->scope_buf, out, self->scope_buf_size * sizeof *self->scope_buf );
+
+		while ( count-- ) out[count] *= self->volume;
 	}
 }
 

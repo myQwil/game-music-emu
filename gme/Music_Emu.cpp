@@ -428,7 +428,7 @@ blargg_err_t Music_Emu::play( long out_count, sample_t* out )
 			emu_play( remain, out + pos );
 			track_ended_ |= emu_track_ended_;
 
-			if ( !ignore_silence_ || out_time > fade_start )
+			if ( !ignore_silence_ && out_time > fade_start )
 			{
 				// check end for a new run of silence
 				long silence = count_silence( out + pos, remain );

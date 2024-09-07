@@ -20,6 +20,10 @@ test/newm/*
 .directory
 .DS_Store
 
+# Zig folders
+*zig-cache/
+zig-out/
+
 # VSCode folder
 .vscode
 

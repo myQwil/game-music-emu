@@ -18,6 +18,8 @@ macro(gme_add_cxx_warning_flag WARNINGFLAG WARNING_VAR)
     endif()
 endmacro()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 file(READ "gme/gme.h" GME_GME_H)
 string(REGEX MATCH "/\\* Game_Music_Emu ([0-9]+)\\.([0-9]+).([0-9]+) \\*/" RE_GME_VERSION "${GME_GME_H}")
 if(NOT RE_GME_VERSION)

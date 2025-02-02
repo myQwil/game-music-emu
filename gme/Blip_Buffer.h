@@ -14,6 +14,8 @@
 	typedef int blip_long;
 	typedef unsigned blip_ulong;
 
+#include "blargg_err.h"
+
 // Time unit at source clock rate
 typedef blip_long blip_time_t;
 
@@ -23,8 +25,6 @@ enum { blip_sample_max = 32767 };
 
 class Blip_Buffer {
 public:
-	typedef const char* blargg_err_t;
-
 	// Set output sample rate and buffer length in milliseconds (1/1000 sec, defaults
 	// to 1/4 second), then clear buffer. Returns NULL on success, otherwise if there
 	// isn't enough memory, returns error without affecting current buffer setup.

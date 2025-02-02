@@ -1,4 +1,3 @@
-#include "gme/gme.h"
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
@@ -22,7 +21,7 @@ public:
 	size_t size() const { return size_; }
 	T* begin() const { return begin_; }
 	T* end() const { return begin_ + size_; }
-	gme_err_t resize( size_t n )
+	const char* resize( size_t n )
 	{
 		void* p = realloc( begin_, n * sizeof (T) );
 		if ( !p && n )
@@ -39,7 +38,7 @@ public:
 	}
 };
 
-extern gme_err_t const arc_eof; // indicates end of archive, not actually an error
+extern const char* const arc_eof; // indicates end of archive, not actually an error
 
 struct arc_entry_t {
 	const char* name;
@@ -53,8 +52,8 @@ protected:
 public:
 	int count() const { return count_; }
 	size_t size() const { return size_; }
-	virtual gme_err_t open( const char* path ) = 0;
-	virtual gme_err_t next( void* buf_ptr, arc_entry_t* entry ) = 0;
+	virtual const char* open( const char* path ) = 0;
+	virtual const char* next( void* buf_ptr, arc_entry_t* entry ) = 0;
 	virtual ~Archive_Reader() { }
 };
 
@@ -90,8 +89,8 @@ class Rar_Reader : public Archive_Reader {
 	void* buf_ptr = nullptr;
 public:
 	static const uint32_t signature = GME_4CHAR( 'R', 'a', 'r', '!' );
-	gme_err_t open( const char* path );
-	gme_err_t next( void* buf_ptr, arc_entry_t* entry );
+	const char* open( const char* path );
+	const char* next( void* buf_ptr, arc_entry_t* entry );
 	~Rar_Reader();
 };
 
@@ -108,9 +107,9 @@ class Zip_Reader : public Archive_Reader {
 	archive_entry* head = nullptr;
 public:
 	static const uint32_t signature = GME_4CHAR( 'P', 'K', 0x3, 0x4 );
-	gme_err_t open_zip( const char* path );
-	gme_err_t open( const char* path );
-	gme_err_t next( void* buf_ptr, arc_entry_t* entry );
+	const char* open_zip( const char* path );
+	const char* open( const char* path );
+	const char* next( void* buf_ptr, arc_entry_t* entry );
 	~Zip_Reader();
 };
 

@@ -29,7 +29,7 @@ blargg_err_t Nes_Vrc7_Apu::init()
 	set_output( nullptr );
 	volume( 1.0 );
 	reset();
-	return nullptr;
+	return 0;
 }
 
 Nes_Vrc7_Apu::~Nes_Vrc7_Apu()

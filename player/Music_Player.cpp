@@ -27,9 +27,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #undef RETURN_ERR
 #define RETURN_ERR( expr ) \
 	do {\
-		gme_err_t err_ = (expr);\
+		const char* err_ = (expr);\
 		if ( err_ )\
 			return err_;\
+	} while ( 0 )
+
+#undef RETURN_GME_ERR
+#define RETURN_GME_ERR( expr ) \
+	do {\
+		gme_err_t err_ = (expr);\
+		if ( err_ )\
+			return gme_strerror( err_ );\
 	} while ( 0 )
 
 // Number of audio buffers per second. Adjust if you encounter audio skipping.
@@ -68,7 +76,7 @@ Music_Player::Music_Player()
 	volume      = 0;
 }
 
-gme_err_t Music_Player::init( uint32_t rate )
+const char* Music_Player::init( uint32_t rate )
 {
 	sample_rate = rate;
 
@@ -114,7 +122,7 @@ const arc_type_t* identify_archive( const char* path )
 	return nullptr;
 }
 
-gme_err_t Music_Player::load_file(const char* path , bool by_mem)
+const char* Music_Player::load_file(const char* path , bool by_mem)
 {
 	stop();
 
@@ -143,9 +151,9 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 
 		SDL_RWclose(file);
 
-		const char *ret = gme_open_data( buf, (long)fileSize, &emu_, sample_rate );
+		gme_err_t ret = gme_open_data( buf, (long)fileSize, &emu_, sample_rate );
 		SDL_free(buf);
-		RETURN_ERR( ret );
+		RETURN_GME_ERR( ret );
 	}
 	else
 	{
@@ -169,7 +177,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 			uint8_t *bp = buf.begin();
 			gme_type_t emu_type = nullptr;
 			arc_entry_t entry;
-			gme_err_t res;
+			const char* res;
 			while ( !(res = in.next( bp, &entry )) )
 			{ // copy data and file sizes
 				gme_type_t t;
@@ -184,17 +192,17 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 				return res;
 
 			if ( !emu_type )
-				return gme_wrong_file_type;
+				return "Wrong file type";
 			emu_ = gme_new_emu( emu_type, sample_rate );
 			if ( !emu_ )
 				return "Out of memory";
 			if ( gme_fixed_track_count( emu_type ) == 1 )
-				RETURN_ERR( gme_load_tracks( emu_, buf.begin(), sizes.begin(), n ) );
+				RETURN_GME_ERR( gme_load_tracks( emu_, buf.begin(), sizes.begin(), n ) );
 			else
-				RETURN_ERR( gme_load_data( emu_, buf.begin(), sizes[0] ) );
+				RETURN_GME_ERR( gme_load_data( emu_, buf.begin(), sizes[0] ) );
 		}
 		else
-			RETURN_ERR( gme_open_file( path, &emu_, sample_rate ) );
+			RETURN_GME_ERR( gme_open_file( path, &emu_, sample_rate ) );
 	}
 
 	char m3u_path [256 + 5];
@@ -214,17 +222,17 @@ int Music_Player::track_count() const
 	return emu_ ? gme_track_count( emu_ ) : false;
 }
 
-gme_err_t Music_Player::start_track( int track )
+const char* Music_Player::start_track( int track )
 {
 	if ( emu_ )
 	{
 		// Sound must not be running when operating on emulator
 		sound_stop();
-		RETURN_ERR( gme_start_track( emu_, track ) );
+		RETURN_GME_ERR( gme_start_track( emu_, track ) );
 
 		gme_free_info( track_info_ );
 		track_info_ = nullptr;
-		RETURN_ERR( gme_track_info( emu_, &track_info_, track ) );
+		RETURN_GME_ERR( gme_track_info( emu_, &track_info_, track ) );
 
 		// Calculate track length
 		if ( track_info_->length <= 0 )

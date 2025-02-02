@@ -96,14 +96,14 @@ static void copy_hes_fields( byte const* in, track_info_t* out )
 blargg_err_t Hes_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_hes_fields( rom.begin() + 0x20, out );
-	return nullptr;
+	return 0;
 }
 
 static blargg_err_t check_hes_header( void const* header )
 {
 	if ( memcmp( header, "HESM", 4 ) )
-		return gme_wrong_file_type;
-	return nullptr;
+		return ERR_FILE_WRONG_TYPE;
+	return 0;
 }
 
 struct Hes_File : Gme_Info_
@@ -121,14 +121,14 @@ struct Hes_File : Gme_Info_
 		blaarg_static_assert( offsetof (header_t,fields) == Hes_Emu::header_size + 0x20, "HES header layout is incorrect!" );
 		blargg_err_t err = in.read( &h, sizeof h );
 		if ( err )
-			return (err == in.eof_error ? gme_wrong_file_type : err);
+			return (err == ERR_EOF ? ERR_FILE_WRONG_TYPE : err);
 		return check_hes_header( &h );
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_hes_fields( h.fields, out );
-		return nullptr;
+		return 0;
 	}
 };
 
@@ -149,13 +149,13 @@ blargg_err_t Hes_Emu::load_( Data_Reader& in )
 	RETURN_ERR( check_hes_header( header_.tag ) );
 
 	if ( header_.vers != 0 )
-		set_warning( "Unknown file version" );
+		set_warning( WARN_FILE_VERSION_UNKNOWN );
 
 	if ( memcmp( header_.data_tag, "DATA", 4 ) )
-		set_warning( "Data header missing" );
+		set_warning( WARN_DATA_HEADER_MISSING );
 
 	if ( memcmp( header_.unused, "\0\0\0\0", 4 ) )
-		set_warning( "Unknown header data" );
+		set_warning( WARN_HEADER_DATA_UNKNOWN );
 
 	// File spec supports multiple blocks, but I haven't found any, and
 	// many files have bad sizes in the only block, so it's simpler to
@@ -166,20 +166,20 @@ blargg_err_t Hes_Emu::load_( Data_Reader& in )
 	long const rom_max = 0x100000;
 	if ( addr & ~(rom_max - 1) )
 	{
-		set_warning( "Invalid address" );
+		set_warning( WARN_ADDRESS_INVALID );
 		addr &= rom_max - 1;
 	}
 	if ( (unsigned long) (addr + size) > (unsigned long) rom_max )
-		set_warning( "Invalid size" );
+		set_warning( WARN_SIZE_INVALID );
 
 	if ( size != rom.file_size() )
 	{
 		if ( size <= rom.file_size() - 4 && !memcmp( rom.begin() + size, "DATA", 4 ) )
-			set_warning( "Multiple DATA not supported" );
+			set_warning( WARN_MULTIPLE_DATA_NOT_SUPPORTED );
 		else if ( size < rom.file_size() )
-			set_warning( "Extra file data" );
+			set_warning( WARN_FILE_EXTRA_DATA );
 		else
-			set_warning( "Missing file data" );
+			set_warning( WARN_FILE_DATA_MISSING );
 	}
 
 	rom.set_addr( addr );
@@ -252,7 +252,7 @@ blargg_err_t Hes_Emu::start_track_( int track )
 	recalc_timer_load();
 	last_frame_hook = 0;
 
-	return nullptr;
+	return 0;
 }
 
 // Hardware
@@ -269,7 +269,7 @@ void Hes_Emu::cpu_write_vdp( int addr, int data )
 		if ( vdp.latch == 5 )
 		{
 			if ( data & 0x04 )
-				set_warning( "Scanline interrupt unsupported" );
+				set_warning( WARN_SCANLINE_INTERRUPT_NOT_SUPPORTED );
 			run_until( time() );
 			vdp.control = data;
 			irq_changed();
@@ -512,7 +512,7 @@ blargg_err_t Hes_Emu::run_clocks( blip_time_t& duration_, int )
 	blip_time_t const duration = duration_; // cache
 
 	if ( cpu::run( duration ) )
-		set_warning( "Emulation error (illegal instruction)" );
+		set_warning( WARN_EMU_INSTRUCTION_ILLEGAL );
 
 	check( time() >= duration );
 	//check( time() - duration < 20 ); // Txx instruction could cause going way over
@@ -530,5 +530,5 @@ blargg_err_t Hes_Emu::run_clocks( blip_time_t& duration_, int )
 	::adjust_time( irq.vdp,   duration );
 	apu.end_frame( duration );
 
-	return nullptr;
+	return 0;
 }

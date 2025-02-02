@@ -26,7 +26,7 @@ Multi_Buffer::Multi_Buffer( int spf ) : samples_per_frame_( spf )
 	channels_changed_count_ = 1;
 }
 
-blargg_err_t Multi_Buffer::set_channel_count( int ) { return nullptr; }
+blargg_err_t Multi_Buffer::set_channel_count( int ) { return 0; }
 
 // Silent_Buffer
 

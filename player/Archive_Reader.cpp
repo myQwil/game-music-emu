@@ -2,13 +2,13 @@
 
 #include <cstring>
 
-gme_err_t const arc_eof = "Archive: End of file";
+const char* const arc_eof = "Archive: End of file";
 
 #ifdef RARDLL
 
 static const int erar_offset = 10;
-static gme_err_t const erar_handle = "Failed to instantiate RAR handle";
-static gme_err_t const erars[] = {
+static const char* const erar_handle = "Failed to instantiate RAR handle";
+static const char* const erars[] = {
 	arc_eof,                      // ERAR_END_ARCHIVE        10
 	"RAR: Out of memory",         // ERAR_NO_MEMORY          11
 	"RAR: Bad data",              // ERAR_BAD_DATA           12
@@ -37,7 +37,7 @@ static int CALLBACK call_rar( UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2 )
 	return 0;
 }
 
-gme_err_t Rar_Reader::open( const char* path )
+const char* Rar_Reader::open( const char* path )
 {
 	RAROpenArchiveData data;
 	memset( &data, 0, sizeof data );
@@ -66,7 +66,7 @@ gme_err_t Rar_Reader::open( const char* path )
 	return nullptr;
 }
 
-gme_err_t Rar_Reader::next( void* bp, arc_entry_t* entry )
+const char* Rar_Reader::next( void* bp, arc_entry_t* entry )
 {
 	// if prev entry was not a music emu file, buf_ptr returns to prev position
 	buf_ptr = bp;
@@ -103,7 +103,7 @@ const char* zip_err_struct = "Failed to create archive struct";
 static const uint16_t gz_signature = GME_2CHAR( 0x1f, 0x8b );
 
 static const int zerr_offset = -6;
-static gme_err_t const zerrs[] = {
+static const char* const zerrs[] = {
 	"GZ: Bad version",       // Z_VERSION_ERROR (-6)
 	"GZ: Buffer too small",  // Z_BUF_ERROR     (-5)
 	"GZ: Out of memory",     // Z_MEM_ERROR     (-4)
@@ -112,7 +112,7 @@ static gme_err_t const zerrs[] = {
 };
 #endif // HAVE_ZLIB_H
 
-gme_err_t Zip_Reader::open_zip( const char* path ) {
+const char* Zip_Reader::open_zip( const char* path ) {
 	if ( !(zip = archive_read_new()) )
 		return zip_err_struct;
 	if ( archive_read_support_filter_all( zip ) != ARCHIVE_OK
@@ -122,9 +122,9 @@ gme_err_t Zip_Reader::open_zip( const char* path ) {
 	return nullptr;
 }
 
-gme_err_t Zip_Reader::open( const char* path )
+const char* Zip_Reader::open( const char* path )
 {
-	gme_err_t err;
+	const char* err;
 	if ( (err = open_zip( path )) )
 		return err;
 
@@ -157,7 +157,7 @@ gme_err_t Zip_Reader::open( const char* path )
 	return (err = open_zip( path )) ? err : nullptr;
 }
 
-gme_err_t Zip_Reader::next( void* buf_ptr, arc_entry_t* entry )
+const char* Zip_Reader::next( void* buf_ptr, arc_entry_t* entry )
 {
 	ptrdiff_t res;
 	if ( (res = archive_read_next_header( zip, &head )) != ARCHIVE_OK )
@@ -173,7 +173,7 @@ gme_err_t Zip_Reader::next( void* buf_ptr, arc_entry_t* entry )
 	if ( GME_2CHAR( bp[0], bp[1] ) == gz_signature && bp[2] == 8 )
 	{
 		// load the gzip file into a separate buffer
-		gme_err_t err;
+		const char* err;
 		gme_vector<uint8_t> buf;
 		if ( (err = buf.resize( siz )) )
 			return err;

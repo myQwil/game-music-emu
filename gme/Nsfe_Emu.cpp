@@ -102,9 +102,9 @@ blargg_err_t Nsfe_Info::load( Data_Reader& in, Nsf_Emu* nsf_emu )
 	byte signature [4];
 	blargg_err_t err = in.read( signature, sizeof signature );
 	if ( err )
-		return (err == in.eof_error ? gme_wrong_file_type : err);
+		return (err == ERR_EOF ? ERR_FILE_WRONG_TYPE : err);
 	if ( memcmp( signature, "NSFE", 4 ) )
-		return gme_wrong_file_type;
+		return ERR_FILE_WRONG_TYPE;
 
 	// free previous info
 	track_name_data.clear();
@@ -140,7 +140,7 @@ blargg_err_t Nsfe_Info::load( Data_Reader& in, Nsf_Emu* nsf_emu )
 		blargg_long tag  = get_le32( block_header [1] );
 
 		if ( size < 0 )
-			return "Corrupt file";
+			return ERR_FILE_CORRUPT;
 
 		//debug_printf( "tag: %c%c%c%c\n", char(tag), char(tag>>8), char(tag>>16), char(tag>>24) );
 
@@ -149,7 +149,7 @@ blargg_err_t Nsfe_Info::load( Data_Reader& in, Nsf_Emu* nsf_emu )
 			case BLARGG_4CHAR('O','F','N','I'): {
 				check( phase == 0 );
 				if ( size < 8 )
-					return "Corrupt file";
+					return ERR_FILE_CORRUPT;
 
 				nsfe_info_t finfo;
 				finfo.track_count = 1;
@@ -170,7 +170,7 @@ blargg_err_t Nsfe_Info::load( Data_Reader& in, Nsf_Emu* nsf_emu )
 
 			case BLARGG_4CHAR('K','N','A','B'):
 				if ( size > (int) sizeof info.banks )
-					return "Corrupt file";
+					return ERR_FILE_CORRUPT;
 				RETURN_ERR( in.read( info.banks, size ) );
 				break;
 
@@ -239,7 +239,7 @@ blargg_err_t Nsfe_Info::load( Data_Reader& in, Nsf_Emu* nsf_emu )
 		}
 	}
 
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Nsfe_Info::track_info_( track_info_t* out, int track ) const
@@ -258,7 +258,7 @@ blargg_err_t Nsfe_Info::track_info_( track_info_t* out, int track ) const
 	GME_COPY_FIELD( info, out, author );
 	GME_COPY_FIELD( info, out, copyright );
 	GME_COPY_FIELD( info, out, dumper );
-	return nullptr;
+	return 0;
 }
 
 Nsfe_Emu::Nsfe_Emu()
@@ -292,7 +292,7 @@ struct Nsfe_File : Gme_Info_
 		RETURN_ERR( info.load( in, nullptr ) );
 		info.disable_playlist( false );
 		set_track_count( info.info.track_count );
-		return nullptr;
+		return 0;
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int track ) const

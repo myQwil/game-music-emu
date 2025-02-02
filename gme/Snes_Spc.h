@@ -168,7 +168,7 @@ private:
 		int         tempo;
 		int         skipped_kon;
 		int         skipped_koff;
-		const char* cpu_error;
+		blargg_err_t cpu_error;
 
 		int         extra_clocks;
 		sample_t*   buf_begin;

@@ -11,7 +11,7 @@
 #define GME_VERSION 0x000604 /* 1 byte major, 1 byte minor, 1 byte patch-level */
 
 /* Error string returned by library functions, or NULL if no error (success) */
-typedef const char* gme_err_t;
+typedef int gme_err_t;
 
 /* First parameter of most gme_ functions is a pointer to the Music_Emu */
 typedef struct Music_Emu Music_Emu;
@@ -106,7 +106,10 @@ enum { gme_info_only = -1 };
 
 /* Most recent warning string, or NULL if none. Clears current warning after returning.
 Warning is also cleared when loading a file and starting a track. */
-BLARGG_EXPORT const char* gme_warning( Music_Emu* );
+BLARGG_EXPORT gme_err_t gme_warning( Music_Emu* );
+
+/* Get m3u error line when an m3u parsing error occurs (WARN_M3U_AT_LINE) */
+BLARGG_EXPORT int gme_m3u_error_line( Music_Emu* );
 
 /* Load m3u playlist file (must be done after loading music) */
 BLARGG_EXPORT gme_err_t gme_load_m3u( Music_Emu*, const char path [] );
@@ -242,9 +245,6 @@ BLARGG_EXPORT int gme_multi_channel( Music_Emu const* );
 
 /******** Advanced file loading ********/
 
-/* Error returned if file type is not supported */
-extern BLARGG_EXPORT const char* const gme_wrong_file_type;
-
 /* Same as gme_open_file(), but uses file data already in memory. Makes copy of data.
  * The resulting Music_Emu object will be set to single channel mode. */
 BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate );
@@ -296,6 +296,16 @@ BLARGG_EXPORT gme_err_t gme_load_tracks( Music_Emu* me,
  * @since 0.6.4
  */
 BLARGG_EXPORT int gme_fixed_track_count( gme_type_t );
+
+/* Return the string representation of an error value, or null if out of bounds
+ * @since 0.6.4
+ */
+BLARGG_EXPORT const char* gme_strerror( gme_err_t );
+
+/* Return the string representation of a warning value, or null if out of bounds
+ * @since 0.6.4
+ */
+BLARGG_EXPORT const char* gme_strwarn( gme_err_t );
 
 /* Load music file using custom data reader function that will be called to
 read file data. Most emulators load the entire file in one read call. */

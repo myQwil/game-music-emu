@@ -32,17 +32,8 @@ blargg_err_t Gme_File::load_m3u_( blargg_err_t err )
 		int line = playlist.first_error();
 		if ( line )
 		{
-			// avoid using bloated printf()
-			char* out = &playlist_warning [sizeof playlist_warning];
-			*--out = 0;
-			do {
-				*--out = line % 10 + '0';
-			} while ( (line /= 10) > 0 );
-
-			static const char str [] = "Problem in m3u at line ";
-			out -= sizeof str - 1;
-			memcpy( out, str, sizeof str - 1 );
-			set_warning( out );
+			set_m3u_error_line( line );
+			set_warning( WARN_M3U_AT_LINE );
 		}
 	}
 	return err;
@@ -429,7 +420,7 @@ blargg_err_t M3u_Playlist::parse_()
 		while ( *in != CR && *in != LF )
 		{
 			if ( !*in )
-				return "Not an m3u playlist";
+				return ERR_M3U_PLAYLIST_INVALID;
 			in++;
 		}
 		if ( in [0] == CR && in [1] == LF ) // treat CR,LF as a single line
@@ -456,7 +447,7 @@ blargg_err_t M3u_Playlist::parse_()
 		else last_comment_value = nullptr;
 	}
 	if ( count <= 0 )
-		return "Not an m3u playlist";
+		return ERR_M3U_PLAYLIST_INVALID;
 
 	if ( !(info_.composer [0] | info_.engineer [0] | info_.ripping [0] | info_.tagging [0]) )
 		info_.title = "";

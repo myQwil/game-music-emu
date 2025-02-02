@@ -155,14 +155,14 @@ blargg_err_t Vgm_Emu::track_info_( track_info_t* out, int ) const
 	if ( gd3 )
 		parse_gd3( gd3 + gd3_header_size, gd3 + size, out );
 
-	return nullptr;
+	return 0;
 }
 
 static blargg_err_t check_vgm_header( Vgm_Emu::header_t const& h )
 {
 	if ( memcmp( h.tag, "Vgm ", 4 ) )
-		return gme_wrong_file_type;
-	return nullptr;
+		return ERR_FILE_WRONG_TYPE;
+	return 0;
 }
 
 struct Vgm_File : Gme_Info_
@@ -176,7 +176,7 @@ struct Vgm_File : Gme_Info_
 	{
 		long file_size = in.remain();
 		if ( file_size <= Vgm_Emu::header_size )
-			return gme_wrong_file_type;
+			return ERR_FILE_WRONG_TYPE;
 
 		RETURN_ERR( in.read( &h, Vgm_Emu::header_size ) );
 		RETURN_ERR( check_vgm_header( h ) );
@@ -195,7 +195,7 @@ struct Vgm_File : Gme_Info_
 				RETURN_ERR( in.read( gd3.begin(), gd3.size() ) );
 			}
 		}
-		return nullptr;
+		return 0;
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int ) const
@@ -203,7 +203,7 @@ struct Vgm_File : Gme_Info_
 		get_vgm_length( h, out );
 		if ( gd3.size() )
 			parse_gd3( gd3.begin(), gd3.end(), out );
-		return nullptr;
+		return 0;
 	}
 };
 
@@ -256,7 +256,7 @@ blargg_err_t Vgm_Emu::set_multi_channel ( bool is_enabled )
 #endif
 	{
 		(void) is_enabled;
-		return "multichannel rendering not supported for YM2*** FM sound chip emulators";
+		return ERR_MULTICHANNEL_NOT_SUPPORTED;
 	}
 }
 
@@ -331,7 +331,7 @@ blargg_err_t Vgm_Emu::load_mem_( byte const* new_data, long new_size )
 	blaarg_static_assert( offsetof (header_t,unused2 [8]) == header_size, "VGM Header layout incorrect!" );
 
 	if ( new_size <= header_size )
-		return gme_wrong_file_type;
+		return ERR_FILE_WRONG_TYPE;
 
 	header_t const& h = *(header_t const*) new_data;
 
@@ -409,16 +409,16 @@ blargg_err_t Vgm_Emu::setup_fm()
 		Dual_Resampler::setup( fm_rate / blip_buf.sample_rate(), rolloff, fm_gain * gain() );
 		int result = ym2413[0].set_rate( fm_rate, ym2413_rate );
 		if ( result == 2 )
-			return "YM2413 FM sound isn't supported";
-		RETURN_ERR( result ? "Out of memory" : nullptr );
+			return ERR_YM2413_FM_NOT_SUPPORTED;
+		RETURN_ERR( result ? ERR_OUT_OF_MEMORY : 0 );
 		ym2413[0].enable( true );
 		if ( ym2413_dual )
 		{
 			ym2413[1].enable( true );
 			int result = ym2413[1].set_rate( fm_rate, ym2413_rate );
 			if ( result == 2 )
-				return "YM2413 FM sound isn't supported";
-			RETURN_ERR( result ? "Out of memory" : nullptr );
+				return ERR_YM2413_FM_NOT_SUPPORTED;
+			RETURN_ERR( result ? ERR_OUT_OF_MEMORY : 0 );
 		}
 		set_voice_count( 8 );
 	}
@@ -440,7 +440,7 @@ blargg_err_t Vgm_Emu::setup_fm()
 		psg[1].volume( gain() );
 	}
 
-	return nullptr;
+	return 0;
 }
 
 // Emulation
@@ -484,7 +484,7 @@ blargg_err_t Vgm_Emu::start_track_( int track )
 		blip_buf.clear();
 		Dual_Resampler::clear();
 	}
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Vgm_Emu::run_clocks( blip_time_t& time_io, int msec )
@@ -493,7 +493,7 @@ blargg_err_t Vgm_Emu::run_clocks( blip_time_t& time_io, int msec )
 	psg[0].end_frame( time_io );
 	if ( psg_dual )
 		psg[1].end_frame( time_io );
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Vgm_Emu::play_( long count, sample_t* out )
@@ -502,5 +502,5 @@ blargg_err_t Vgm_Emu::play_( long count, sample_t* out )
 		return Classic_Emu::play_( count, out );
 
 	Dual_Resampler::dual_play( count, out, blip_buf );
-	return nullptr;
+	return 0;
 }

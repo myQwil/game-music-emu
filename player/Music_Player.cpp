@@ -5,7 +5,6 @@
 #include <string.h>
 #include <ctype.h>
 #include "SDL_rwops.h"
-#include "Archive_Reader.h"
 
 /* Copyright (C) 2005-2010 by Shay Green. Permission is hereby granted, free of
 charge, to any person obtaining a copy of this software module and associated
@@ -37,7 +36,7 @@ static const int fill_rate = 80;
 
 // Simple sound driver using SDL
 typedef void (*sound_callback_t)( void* data, short* out, int count );
-static const char* sound_init( long sample_rate, int buf_size, sound_callback_t, void* data );
+static gme_err_t sound_init( long sample_rate, int buf_size, sound_callback_t, void* data );
 static void sound_start();
 static void sound_stop();
 static void sound_cleanup();
@@ -122,24 +121,24 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 		SDL_RWops *file = SDL_RWFromFile(path, "rb");
 
 		if ( !file )
-			return "Can't load the file";
+			return ERR_FILE_CANT_OPEN;
 
 		size_t fileSize = SDL_RWsize(file);
 		Uint8 *buf = (Uint8 *)SDL_malloc(fileSize);
 
 		if ( !buf )
-			return "Out of memory";
+			return ERR_OUT_OF_MEMORY;
 
 		if ( SDL_RWread(file, buf, 1, fileSize) < fileSize)
 		{
 			SDL_free(buf);
 			SDL_RWclose(file);
-			return "Can't read a file";
+			return ERR_FILE_CANT_READ;
 		}
 
 		SDL_RWclose(file);
 
-		const char *ret = gme_open_data( buf, (long)fileSize, &emu_, sample_rate );
+		gme_err_t ret = gme_open_data( buf, (long)fileSize, &emu_, sample_rate );
 		SDL_free(buf);
 		RETURN_ERR( ret );
 	}
@@ -153,7 +152,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 		{
 			Archive_Reader* ptr = arc->new_arc();
 			if ( !ptr )
-				return "Failed to create archive reader";
+				return ERR_CREATE_ARCHIVE_READER;
 			Archive_Reader& in = *ptr;
 			blargg_vector<long> sizes;
 			blargg_vector<uint8_t> buf;
@@ -180,10 +179,10 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 			delete ptr;
 
 			if ( !emu_type )
-				return gme_wrong_file_type;
+				return ERR_FILE_WRONG_TYPE;
 			emu_ = gme_new_emu( emu_type, sample_rate );
 			if ( !emu_ )
-				return "Out of memory";
+				return ERR_OUT_OF_MEMORY;
 			RETURN_ERR( gme_load_tracks( emu_, buf.begin(), sizes.begin(), n ) );
 		}
 		else
@@ -199,7 +198,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 	strcpy( p, ".m3u" );
 	if ( gme_load_m3u( emu_, m3u_path ) ) { } // ignore error
 
-	return nullptr;
+	return 0;
 }
 
 int Music_Player::track_count() const
@@ -231,7 +230,7 @@ gme_err_t Music_Player::start_track( int track )
 		paused = false;
 		sound_start();
 	}
-	return nullptr;
+	return 0;
 }
 
 void Music_Player::pause( int b )
@@ -351,7 +350,7 @@ static void sdl_callback( void* /* data */, Uint8* out, int count )
 		sound_callback( sound_callback_data, (short*) out, count / 2 );
 }
 
-static const char* sound_init( long sample_rate, int buf_size,
+static gme_err_t sound_init( long sample_rate, int buf_size,
 		sound_callback_t cb, void* data )
 {
 	sound_callback = cb;
@@ -363,15 +362,9 @@ static const char* sound_init( long sample_rate, int buf_size,
 	as.channels = 2;
 	as.callback = sdl_callback;
 	as.samples  = buf_size;
-	if ( SDL_OpenAudio( &as, nullptr ) < 0 )
-	{
-		const char* err = SDL_GetError();
-		if ( !err )
-			err = "Couldn't open SDL audio";
-		return err;
-	}
 
-	return nullptr;
+	gme_err_t err = SDL_OpenAudio( &as, nullptr );
+	return ( err < 0 ) ? err : 0;
 }
 
 static void sound_start()

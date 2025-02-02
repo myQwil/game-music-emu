@@ -11,7 +11,7 @@ static char playlist [] = "test.m3u"; /* uses this playlist, if present*/
 #include <stdlib.h>
 #include <stdio.h>
 
-void handle_error( const char* );
+void handle_error( int );
 
 /* Example of loading from memory, which would be useful if using a zip file or
 other custom format. In this example it's silly because we could just use
@@ -146,11 +146,11 @@ int main()
 	return 0;
 }
 
-void handle_error( const char* str )
+void handle_error( int err )
 {
-	if ( str )
+	if ( err )
 	{
-		printf( "Error: %s\n", str ); getchar();
+		printf( "Error: %s\n", gme_strerror( err ) ); getchar();
 		exit( EXIT_FAILURE );
 	}
 }

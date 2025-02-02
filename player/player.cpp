@@ -22,6 +22,7 @@ static int const scope_height = 512;
 
 #include "Music_Player.h"
 #include "Audio_Scope.h"
+#include <algorithm>
 
 #include <string.h>
 #include <stdlib.h>
@@ -43,7 +44,7 @@ L           Toggle track looping (infinite playback)
 0           Reset tempo and turn channels back on */
 )";
 
-static void handle_error( const char* );
+static void handle_error( gme_err_t );
 
 static bool paused;
 static Audio_Scope* scope;
@@ -60,16 +61,14 @@ static void init( void )
 	// Init scope
 	scope = new Audio_Scope;
 	if ( !scope )
-		handle_error( "Out of memory" );
-	std::string err_msg = scope->init( scope_width, scope_height );
-	if ( !err_msg.empty() )
-		handle_error( err_msg.c_str() );
+		handle_error( ERR_OUT_OF_MEMORY );
+	handle_error( scope->init( scope_width, scope_height ) );
 	memset( scope_buf, 0, sizeof scope_buf );
 
 	// Create player
 	player = new Music_Player;
 	if ( !player )
-		handle_error( "Out of memory" );
+		handle_error( ERR_OUT_OF_MEMORY );
 	handle_error( player->init() );
 	player->set_scope_buffer( scope_buf, scope_width * 2 );
 }
@@ -277,11 +276,16 @@ int main( int argc, char** argv )
 	return 0;
 }
 
-static void handle_error( const char* error )
+static void handle_error( gme_err_t err )
 {
-	if ( error )
+	if ( err )
 	{
 		// put error in window title
+		const char* error = ( err < 0 )  ? SDL_GetError()
+			: ( err >= arc_err_offset )   ? arc_strerror( err )
+			: ( err >= scope_err_offset ) ? scope_strerror( err )
+			: gme_strerror( err );
+
 		char str [256];
 		sprintf( str, "Error: %s", error );
 		fprintf( stderr, "%s\n", str );

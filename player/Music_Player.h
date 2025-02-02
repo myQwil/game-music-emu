@@ -5,6 +5,7 @@
 #define MUSIC_PLAYER_H
 
 #include "gme.h"
+#include "Archive_Reader.h"
 
 class Music_Player {
 public:

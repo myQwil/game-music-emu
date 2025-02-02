@@ -68,17 +68,17 @@ static blargg_err_t parse_header( byte const* in, long size, Ay_Emu::file_t* out
 	out->end    = in + size;
 
 	if ( size < Ay_Emu::header_size )
-		return gme_wrong_file_type;
+		return ERR_FILE_WRONG_TYPE;
 
 	header_t const& h = *(header_t const*) in;
 	if ( memcmp( h.tag, "ZXAYEMUL", 8 ) )
-		return gme_wrong_file_type;
+		return ERR_FILE_WRONG_TYPE;
 
 	out->tracks = get_data( *out, h.track_info, (h.max_track + 1) * 4 );
 	if ( !out->tracks )
-		return "Missing track data";
+		return ERR_TRACK_DATA_MISSING;
 
-	return nullptr;
+	return 0;
 }
 
 static void copy_ay_fields( Ay_Emu::file_t const& file, track_info_t* out, int track )
@@ -95,7 +95,7 @@ static void copy_ay_fields( Ay_Emu::file_t const& file, track_info_t* out, int t
 blargg_err_t Ay_Emu::track_info_( track_info_t* out, int track ) const
 {
 	copy_ay_fields( file, out, track );
-	return nullptr;
+	return 0;
 }
 
 struct Ay_File : Gme_Info_
@@ -108,13 +108,13 @@ struct Ay_File : Gme_Info_
 	{
 		RETURN_ERR( parse_header( begin, size, &file ) );
 		set_track_count( file.header->max_track + 1 );
-		return nullptr;
+		return 0;
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int track ) const
 	{
 		copy_ay_fields( file, out, track );
-		return nullptr;
+		return 0;
 	}
 };
 
@@ -134,7 +134,7 @@ blargg_err_t Ay_Emu::load_mem_( byte const* in, long size )
 	set_track_count( file.header->max_track + 1 );
 
 	if ( file.header->vers > 2 )
-		set_warning( "Unknown file version" );
+		set_warning( WARN_FILE_VERSION_UNKNOWN );
 
 	set_voice_count( osc_count );
 	apu.volume( gain() );
@@ -174,13 +174,13 @@ blargg_err_t Ay_Emu::start_track_( int track )
 
 	// locate data blocks
 	byte const* const data = get_data( file, file.tracks + track * 4 + 2, 14 );
-	if ( !data ) return "File data missing";
+	if ( !data ) return ERR_FILE_DATA_MISSING;
 
 	byte const* const more_data = get_data( file, data + 10, 6 );
-	if ( !more_data ) return "File data missing";
+	if ( !more_data ) return ERR_FILE_DATA_MISSING;
 
 	byte const* blocks = get_data( file, data + 12, 8 );
-	if ( !blocks ) return "File data missing";
+	if ( !blocks ) return ERR_FILE_DATA_MISSING;
 
 	// initial addresses
 	cpu::reset( mem.ram );
@@ -191,7 +191,7 @@ blargg_err_t Ay_Emu::start_track_( int track )
 	r.ix = r.iy = r.w.hl;
 
 	unsigned addr = get_be16( blocks );
-	if ( !addr ) return "File data missing";
+	if ( !addr ) return ERR_FILE_DATA_MISSING;
 
 	unsigned init = get_be16( more_data + 2 );
 	if ( !init )
@@ -204,14 +204,14 @@ blargg_err_t Ay_Emu::start_track_( int track )
 		unsigned len = get_be16( blocks ); blocks += 2;
 		if ( addr + len > 0x10000 )
 		{
-			set_warning( "Bad data block size" );
+			set_warning( WARN_DATA_BAD_BLOCK_SIZE );
 			len = 0x10000 - addr;
 		}
 		check( len );
 		byte const* in = get_data( file, blocks, 0 ); blocks += 2;
 		if ( len > blargg_ulong (file.end - in) )
 		{
-			set_warning( "Missing file data" );
+			set_warning( WARN_FILE_DATA_MISSING );
 			len = file.end - in;
 		}
 		//debug_printf( "addr: $%04X, len: $%04X\n", addr, len );
@@ -221,7 +221,7 @@ blargg_err_t Ay_Emu::start_track_( int track )
 
 		if ( file.end - blocks < 8 )
 		{
-			set_warning( "Missing file data" );
+			set_warning( WARN_FILE_DATA_MISSING );
 			break;
 		}
 	}
@@ -274,7 +274,7 @@ blargg_err_t Ay_Emu::start_track_( int track )
 	cpc_mode      = false;
 	cpc_latch     = 0;
 
-	return nullptr;
+	return 0;
 }
 
 // Emulation
@@ -406,5 +406,5 @@ blargg_err_t Ay_Emu::run_clocks( blip_time_t& duration, int )
 
 	apu.end_frame( duration );
 
-	return nullptr;
+	return 0;
 }

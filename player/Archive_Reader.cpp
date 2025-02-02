@@ -20,20 +20,20 @@ blargg_err_t Rar_Reader::restart( RAROpenArchiveData* data )
 		close();
 	rar = RAROpenArchive( data );
 	if ( !rar )
-		return "Failed to instantiate RAR handle";
+		return ERR_RAR_CREATE_HANDLE;
 	RARSetCallback( rar, call_rar, (LPARAM)&bp );
-	return nullptr;
+	return 0;
 }
 
-blargg_err_t Rar_Reader::open( const char* path, bool skip )
+blargg_err_t Rar_Reader::open( const char* path )
 {
-	blargg_err_t err;
 	RAROpenArchiveData data;
 	memset( &data, 0, sizeof data );
 	data.ArcName = (char *)path;
+	data.OpenMode = RAR_OM_LIST;
 
 	// determine space needed for the unpacked size and file count.
-	data.OpenMode = RAR_OM_LIST;
+	blargg_err_t err;
 	if ( (err = restart( &data )) )
 		return err;
 	while ( RARReadHeader( rar, &head ) == ERAR_SUCCESS )
@@ -43,7 +43,7 @@ blargg_err_t Rar_Reader::open( const char* path, bool skip )
 	}
 
 	// prepare for extraction
-	data.OpenMode = skip ? RAR_OM_LIST : RAR_OM_EXTRACT;
+	data.OpenMode = RAR_OM_EXTRACT;
 	return restart( &data );
 }
 
@@ -51,8 +51,8 @@ blargg_err_t Rar_Reader::read( void* p )
 {
 	bp = p;
 	if ( RARProcessFile( rar, -1, nullptr, nullptr ) != ERAR_SUCCESS )
-		return "Error processing RAR file";
-	return nullptr;
+		return ERR_RAR_PROCESS;
+	return 0;
 }
 
 #endif // RARDLL

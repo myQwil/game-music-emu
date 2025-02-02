@@ -27,6 +27,77 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
+static const char* const blargg_errmsg[] = {
+	"Invalid init address",                 // ERR_ADDRESS_INVALID_INIT
+	"Invalid music address",                // ERR_ADDRESS_INVALID_MUSIC
+	"Invalid play address",                 // ERR_ADDRESS_INVALID_PLAY
+	"Internal (tried to resize Silent_Blip_Buffer)", // ERR_BLIPBUF_RESIZE
+	"Digimusic not supported",              // ERR_DIGIMUSIC_NOT_SUPPORTED
+	"Emulation error (illegal instruction)", // ERR_EMU_INSTRUCTION_ILLEGAL
+	"Unexpected end of file",               // ERR_EOF
+	"Invalid fastplay value",               // ERR_FASTPLAY_VALUE_INVALID
+	"Couldn't get file size",               // ERR_FILE_CANT_GET_SIZE
+	"Couldn't open file",                   // ERR_FILE_CANT_OPEN
+	"Couldn't read from file",              // ERR_FILE_CANT_READ
+	"Error seeking in file",                // ERR_FILE_CANT_SEEK
+	"Corrupt file",                         // ERR_FILE_CORRUPT
+	"File data missing",                    // ERR_FILE_DATA_MISSING
+	"File not loaded",                      // ERR_FILE_NOT_LOADED
+	"Wrong file type for this emulator",    // ERR_FILE_WRONG_TYPE
+	"Packed GYM file not supported",        // ERR_GYM_PACKED_NOT_SUPPORTED
+	"Couldn't read from GZ file",           // ERR_GZ_CANT_READ
+	"Error seeking in GZ file",             // ERR_GZ_CANT_SEEK
+	"Not an m3u playlist",                  // ERR_M3U_PLAYLIST_INVALID
+	"Invalid track in m3u playlist",        // ERR_M3U_TRACK_INVALID
+	"Multichannel rendering not supported", // ERR_MULTICHANNEL_NOT_SUPPORTED
+	"Out of memory",                        // ERR_OUT_OF_MEMORY
+	"Unsupported player type",              // ERR_PLAYER_TYPE_NOT_SUPPORTED
+	"Read error",                           // ERR_READ
+	"ROM data missing",                     // ERR_ROM_DATA_MISSING
+	"SPC emulation error",                  // ERR_SPC_EMULATION
+	"Invalid track count",                  // ERR_TRACK_COUNT_INVALID
+	"Missing track data",                   // ERR_TRACK_DATA_MISSING
+	"Invalid track",                        // ERR_TRACK_INVALID
+	"File type must have a fixed track count of 1", // ERR_TRACK_SINGLE_ONLY
+	"Use full emulator for playback",       // ERR_USE_FULL_EMULATOR_FOR_PLAYBACK
+	"YM2413 FM sound isn't supported"       // ERR_YM2413_FM_NOT_SUPPORTED
+};
+
+static const char* const blargg_warnmsg[] = {
+	"Invalid address",                      // WARN_ADDRESS_INVALID
+	"Corrupt file (invalid load/init/play address)", // WARN_ADDRESS_INVALID_LOADINITPLAY
+	"Bank data missing",                    // WARN_BANK_DATA_MISSING
+	"Invalid bank",                         // WARN_BANK_INVALID
+	"Bad data block size",                  // WARN_DATA_BAD_BLOCK_SIZE
+	"Data header missing",                  // WARN_DATA_HEADER_MISSING
+	"Excessive data size",                  // WARN_DATA_SIZE_EXCESSIVE
+	blargg_errmsg[ERR_EMU_INSTRUCTION_ILLEGAL - ERR_FIRST], // WARN_EMU_INSTRUCTION_ILLEGAL
+	"Uses unsupported audio expansion hardware", // WARN_EXPANSION_HARDWARE_NOT_SUPPORTED
+	"Invalid file data block",              // WARN_FILE_DATA_BLOCK_INVALID
+	"Missing file data",                    // WARN_FILE_DATA_MISSING
+	"Extra file data",                      // WARN_FILE_EXTRA_DATA
+	"Unknown file version",                 // WARN_FILE_VERSION_UNKNOWN
+	"FM sound not supported",               // WARN_FM_NOT_SUPPORTED
+	"Unknown header data",                  // WARN_HEADER_DATA_UNKNOWN
+	"Problem in m3u (check m3u_error_line())", // WARN_M3U_AT_LINE
+	"Multiple DATA not supported",          // WARN_MULTIPLE_DATA_NOT_SUPPORTED
+	"Scanline interrupt not supported",     // WARN_SCANLINE_INTERRUPT_NOT_SUPPORTED
+	"Invalid size",                         // WARN_SIZE_INVALID
+	"Stream lacked end event",              // WARN_STREAM_END_EVENT_MISSING
+	"Unknown stream event",                 // WARN_STREAM_EVENT_UNKNOWN
+	"Invalid timer mode"                    // WARN_TIMER_MODE_INVALID
+};
+
+const char* gme_strerror( gme_err_t err ) {
+	return ( ERR_FIRST <= err && err <= ERR_LAST ) ?
+		blargg_errmsg[err - ERR_FIRST] : nullptr;
+}
+
+const char* gme_strwarn( gme_err_t warn ) {
+	return ( WARN_FIRST <= warn && warn <= WARN_LAST ) ?
+		blargg_warnmsg[warn - WARN_FIRST] : nullptr;
+}
+
 gme_type_t const* gme_type_list()
 {
 	static gme_type_t const gme_type_list_ [] = {
@@ -137,7 +208,7 @@ gme_err_t gme_identify_file( const char* path, gme_type_t* type_out )
 		RETURN_ERR( in.read( header, sizeof header ) );
 		*type_out = gme_identify_extension( gme_identify_header( header ) );
 	}
-	return nullptr;
+	return 0;
 }
 
 gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate )
@@ -149,7 +220,7 @@ gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sampl
 	if ( size >= 4 )
 		file_type = gme_identify_extension( gme_identify_header( data ) );
 	if ( !file_type )
-		return gme_wrong_file_type;
+		return ERR_FILE_WRONG_TYPE;
 
 	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
 	CHECK_ALLOC( emu );
@@ -182,7 +253,7 @@ gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 		RETURN_ERR( in.read( header, sizeof header ) );
 		file_type = gme_identify_extension( gme_identify_header( header ) );
 		if ( !file_type )
-			return gme_wrong_file_type;
+			return ERR_FILE_WRONG_TYPE;
 	}
 
 	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
@@ -294,7 +365,9 @@ void gme_delete( Music_Emu* me ) { delete me; }
 
 gme_type_t gme_type( Music_Emu const* me ) { return me->type(); }
 
-const char* gme_warning( Music_Emu* me ) { return me->warning(); }
+gme_err_t gme_warning( Music_Emu* me ) { return me->warning(); }
+
+int gme_m3u_error_line( Music_Emu* me ) { return me->m3u_error_line(); }
 
 int gme_track_count( Music_Emu const* me ) { return me->track_count(); }
 
@@ -368,7 +441,7 @@ gme_err_t gme_track_info( Music_Emu const* me, gme_info_t** out, int track )
 
 	*out = info;
 
-	return nullptr;
+	return 0;
 }
 
 void gme_free_info( gme_info_t* info )

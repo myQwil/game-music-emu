@@ -71,14 +71,14 @@ static void copy_kss_fields( Kss_Emu::header_t const& h, track_info_t* out )
 blargg_err_t Kss_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_kss_fields( header_, out );
-	return nullptr;
+	return 0;
 }
 
 static blargg_err_t check_kss_header( void const* header )
 {
 	if ( memcmp( header, "KSCC", 4 ) && memcmp( header, "KSSX", 4 ) )
-		return gme_wrong_file_type;
-	return nullptr;
+		return ERR_FILE_WRONG_TYPE;
+	return 0;
 }
 
 struct Kss_File : Gme_Info_
@@ -91,14 +91,14 @@ struct Kss_File : Gme_Info_
 	{
 		blargg_err_t err = in.read( &header_, Kss_Emu::header_size );
 		if ( err )
-			return (err == in.eof_error ? gme_wrong_file_type : err);
+			return (err == ERR_EOF ? ERR_FILE_WRONG_TYPE : err);
 		return check_kss_header( &header_ );
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_kss_fields( header_, out );
-		return nullptr;
+		return 0;
 	}
 };
 
@@ -136,12 +136,12 @@ blargg_err_t Kss_Emu::load_( Data_Reader& in )
 		if ( header_.extra_header )
 		{
 			header_.extra_header = 0;
-			set_warning( "Unknown data in header" );
+			set_warning( WARN_HEADER_DATA_UNKNOWN );
 		}
 		if ( header_.device_flags & ~0x0F )
 		{
 			header_.device_flags &= 0x0F;
-			set_warning( "Unknown data in header" );
+			set_warning( WARN_HEADER_DATA_UNKNOWN );
 		}
 	}
 	else
@@ -149,11 +149,11 @@ blargg_err_t Kss_Emu::load_( Data_Reader& in )
 		ext_header_t& ext = header_;
 		memcpy( &ext, rom.begin(), min( (int) ext_header_size, (int) header_.extra_header ) );
 		if ( header_.extra_header > 0x10 )
-			set_warning( "Unknown data in header" );
+			set_warning( WARN_HEADER_DATA_UNKNOWN );
 	}
 
 	if ( header_.device_flags & 0x09 )
-		set_warning( "FM sound not supported" );
+		set_warning( WARN_FM_NOT_SUPPORTED );
 
 	scc_enabled = 0xC000;
 	if ( header_.device_flags & 0x04 )
@@ -220,7 +220,7 @@ blargg_err_t Kss_Emu::start_track_( int track )
 	long load_size = min( orig_load_size, rom.file_size() );
 	load_size = min( load_size, long (mem_size - load_addr) );
 	if ( load_size != orig_load_size )
-		set_warning( "Excessive data size" );
+		set_warning( WARN_DATA_SIZE_EXCESSIVE );
 	memcpy( ram + load_addr, rom.begin() + header_.extra_header, load_size );
 
 	rom.set_addr( -load_size - header_.extra_header );
@@ -232,7 +232,7 @@ blargg_err_t Kss_Emu::start_track_( int track )
 	if ( bank_count > max_banks )
 	{
 		bank_count = max_banks;
-		set_warning( "Bank data missing" );
+		set_warning( WARN_BANK_DATA_MISSING );
 	}
 	//debug_printf( "load_size : $%X\n", load_size );
 	//debug_printf( "bank_size : $%X\n", bank_size );
@@ -257,7 +257,7 @@ blargg_err_t Kss_Emu::start_track_( int track )
 	update_gain();
 	ay_latch = 0;
 
-	return nullptr;
+	return 0;
 }
 
 void Kss_Emu::set_bank( int logical, int physical )
@@ -416,5 +416,5 @@ blargg_err_t Kss_Emu::run_clocks( blip_time_t& duration, int )
 	if ( sn )
 		sn->end_frame( duration );
 
-	return nullptr;
+	return 0;
 }

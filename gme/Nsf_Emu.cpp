@@ -112,14 +112,14 @@ static void copy_nsf_fields( Nsf_Emu::header_t const& h, track_info_t* out )
 blargg_err_t Nsf_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_nsf_fields( header_, out );
-	return nullptr;
+	return 0;
 }
 
 static blargg_err_t check_nsf_header( void const* header )
 {
 	if ( memcmp( header, "NESM\x1A", 5 ) )
-		return gme_wrong_file_type;
-	return nullptr;
+		return ERR_FILE_WRONG_TYPE;
+	return 0;
 }
 
 struct Nsf_File : Gme_Info_
@@ -132,10 +132,10 @@ struct Nsf_File : Gme_Info_
 	{
 		blargg_err_t err = in.read( &h, Nsf_Emu::header_size );
 		if ( err )
-			return (err == in.eof_error ? gme_wrong_file_type : err);
+			return (err == ERR_EOF ? ERR_FILE_WRONG_TYPE : err);
 
 		if ( h.chip_flags & ~(namco_flag | vrc6_flag | fme7_flag | fds_flag | mmc5_flag | vrc7_flag) )
-			set_warning( "Uses unsupported audio expansion hardware" );
+			set_warning( WARN_EXPANSION_HARDWARE_NOT_SUPPORTED );
 
 		set_track_count( h.track_count );
 		return check_nsf_header( &h );
@@ -144,7 +144,7 @@ struct Nsf_File : Gme_Info_
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_nsf_fields( h, out );
-		return nullptr;
+		return 0;
 	}
 };
 
@@ -184,7 +184,7 @@ void Nsf_Emu::set_tempo_( double t )
 blargg_err_t Nsf_Emu::init_sound()
 {
 	if ( header_.chip_flags & ~(namco_flag | vrc6_flag | fme7_flag | fds_flag | mmc5_flag | vrc7_flag) )
-		set_warning( "Uses unsupported audio expansion hardware" );
+		set_warning( WARN_EXPANSION_HARDWARE_NOT_SUPPORTED );
 
 #ifdef NSF_EMU_APU_ONLY
 	int const count_total = Nes_Apu::osc_count;
@@ -325,7 +325,7 @@ blargg_err_t Nsf_Emu::init_sound()
 
 	apu.volume( adjusted_gain );
 
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Nsf_Emu::load_( Data_Reader& in )
@@ -337,7 +337,7 @@ blargg_err_t Nsf_Emu::load_( Data_Reader& in )
 	RETURN_ERR( check_nsf_header( &header_ ) );
 
 	if ( header_.vers != 1 )
-		set_warning( "Unknown file version" );
+		set_warning( WARN_FILE_VERSION_UNKNOWN );
 
 	// sound and memory
 	blargg_err_t err = init_sound();
@@ -353,9 +353,9 @@ blargg_err_t Nsf_Emu::load_( Data_Reader& in )
 	if ( !play_addr ) play_addr = rom_begin;
 	if ( load_addr < rom_begin || init_addr < rom_begin )
 	{
-		const char* w = warning();
+		blargg_err_t w = warning();
 		if ( !w )
-			w = "Corrupt file (invalid load/init/play address)";
+			w = WARN_ADDRESS_INVALID_LOADINITPLAY;
 		return w;
 	}
 
@@ -611,7 +611,7 @@ blargg_err_t Nsf_Emu::start_track_( int track )
 	r.a  = track;
 	r.x  = pal_only;
 
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Nsf_Emu::run_clocks( blip_time_t& duration, int )
@@ -625,7 +625,7 @@ blargg_err_t Nsf_Emu::run_clocks( blip_time_t& duration, int )
 		{
 			if ( r.pc != badop_addr )
 			{
-				set_warning( "Emulation error (illegal instruction)" );
+				set_warning( WARN_EMU_INSTRUCTION_ILLEGAL );
 				r.pc++;
 			}
 			else
@@ -665,7 +665,7 @@ blargg_err_t Nsf_Emu::run_clocks( blip_time_t& duration, int )
 	if ( cpu::error_count() )
 	{
 		cpu::clear_error_count();
-		set_warning( "Emulation error (illegal instruction)" );
+		set_warning( WARN_EMU_INSTRUCTION_ILLEGAL );
 	}
 
 	duration = time();
@@ -687,5 +687,5 @@ blargg_err_t Nsf_Emu::run_clocks( blip_time_t& duration, int )
 	}
 	#endif
 
-	return nullptr;
+	return 0;
 }

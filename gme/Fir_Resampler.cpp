@@ -81,7 +81,7 @@ blargg_err_t Fir_Resampler_::buffer_size( int new_size )
 {
 	RETURN_ERR( buf.resize( new_size + write_offset ) );
 	clear();
-	return nullptr;
+	return 0;
 }
 
 double Fir_Resampler_::time_ratio( double new_factor, double rolloff, double gain )

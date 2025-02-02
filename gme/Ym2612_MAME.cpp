@@ -3071,13 +3071,13 @@ Ym2612_MAME_Emu::~Ym2612_MAME_Emu()
 	if ( impl ) Ym2612_MameImpl::ym2612_shutdown( impl );
 }
 
-const char *Ym2612_MAME_Emu::set_rate(double sample_rate, double clock_rate)
+blargg_err_t Ym2612_MAME_Emu::set_rate(double sample_rate, double clock_rate)
 {
 	if ( impl ) Ym2612_MameImpl::ym2612_shutdown( impl );
 	impl = Ym2612_MameImpl::ym2612_init( nullptr, static_cast<int>(clock_rate), static_cast<int>(sample_rate), nullptr, nullptr );
 	if ( !impl )
-		return "Out of memory";
-	return nullptr;
+		return ERR_OUT_OF_MEMORY;
+	return 0;
 }
 
 void Ym2612_MAME_Emu::reset()

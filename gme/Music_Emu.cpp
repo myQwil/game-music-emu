@@ -86,7 +86,7 @@ blargg_err_t Music_Emu::set_sample_rate( long rate )
 	RETURN_ERR( set_sample_rate_( rate ) );
 	RETURN_ERR( buf.resize( buf_size ) );
 	sample_rate_ = rate;
-	return nullptr;
+	return 0;
 }
 
 void Music_Emu::pre_load()
@@ -109,7 +109,7 @@ bool Music_Emu::multi_channel() const
 blargg_err_t Music_Emu::set_multi_channel( bool )
 {
 	// by default not supported, derived may override this
-	return "unsupported for this emulator type";
+	return ERR_MULTICHANNEL_NOT_SUPPORTED;
 }
 
 blargg_err_t Music_Emu::set_multi_channel_( bool isEnabled )
@@ -117,7 +117,7 @@ blargg_err_t Music_Emu::set_multi_channel_( bool isEnabled )
 	// multi channel support must be set at the very beginning
 	require( !sample_rate() );
 	multi_channel_ = isEnabled;
-	return nullptr;
+	return 0;
 }
 
 void Music_Emu::mute_voice( int index, bool mute )
@@ -186,7 +186,7 @@ blargg_err_t Music_Emu::start_track( int track )
 		silence_time  = 0;
 		silence_count = 0;
 	}
-	return track_ended() ? warning() : nullptr;
+	return track_ended() ? warning() : 0;
 }
 
 void Music_Emu::end_track_if_error( blargg_err_t err )
@@ -266,7 +266,7 @@ blargg_err_t Music_Emu::skip( long count )
 	if ( !(silence_count | buf_remain) ) // caught up to emulator, so update track ended
 		track_ended_ |= emu_track_ended_;
 
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Music_Emu::skip_( long count )
@@ -295,7 +295,7 @@ blargg_err_t Music_Emu::skip_( long count )
 		count -= n;
 		RETURN_ERR( play_( n, buf.begin() ) );
 	}
-	return nullptr;
+	return 0;
 }
 
 // Fading
@@ -444,18 +444,18 @@ blargg_err_t Music_Emu::play( long out_count, sample_t* out )
 			handle_fade( out_count, out );
 	}
 	out_time += out_count;
-	return nullptr;
+	return 0;
 }
 
 // Gme_Info_
 
-blargg_err_t Gme_Info_::set_sample_rate_( long )            { return nullptr; }
+blargg_err_t Gme_Info_::set_sample_rate_( long )            { return 0; }
 void         Gme_Info_::pre_load()                          { Gme_File::pre_load(); } // skip Music_Emu
 void         Gme_Info_::post_load_()                        { Gme_File::post_load_(); } // skip Music_Emu
 void         Gme_Info_::set_equalizer_( equalizer_t const& ){ check( false ); }
 void         Gme_Info_::enable_accuracy_( bool )            { check( false ); }
 void         Gme_Info_::mute_voices_( int )                 { check( false ); }
 void         Gme_Info_::set_tempo_( double )                { }
-blargg_err_t Gme_Info_::start_track_( int )                 { return "Use full emulator for playback"; }
-blargg_err_t Gme_Info_::play_( long, sample_t* )            { return "Use full emulator for playback"; }
+blargg_err_t Gme_Info_::start_track_( int )                 { return ERR_USE_FULL_EMULATOR_FOR_PLAYBACK; }
+blargg_err_t Gme_Info_::play_( long, sample_t* )            { return ERR_USE_FULL_EMULATOR_FOR_PLAYBACK; }
 

@@ -76,12 +76,12 @@ void Blip_Buffer::clear( int entire_buffer )
 	}
 }
 
-Blip_Buffer::blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec )
+blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec )
 {
 	if ( buffer_size_ == silent_buf_size )
 	{
 		assert( 0 );
-		return "Internal (tried to resize Silent_Blip_Buffer)";
+		return ERR_BLIPBUF_RESIZE;
 	}
 
 	// start with maximum length that resampled time can represent
@@ -99,7 +99,7 @@ Blip_Buffer::blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec 
 	{
 		void* p = realloc( buffer_, (new_size + blip_buffer_extra_) * sizeof *buffer_ );
 		if ( !p )
-			return "Out of memory";
+			return ERR_OUT_OF_MEMORY;
 		buffer_ = (buf_t_*) p;
 	}
 
@@ -117,7 +117,7 @@ Blip_Buffer::blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec 
 
 	clear();
 
-	return nullptr; // success
+	return 0; // success
 }
 
 blip_resampled_time_t Blip_Buffer::clock_rate_factor( long rate ) const

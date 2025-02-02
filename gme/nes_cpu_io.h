@@ -84,7 +84,7 @@ void Nsf_Emu::cpu_write( nes_addr_t addr, int data )
 	{
 		blargg_long offset = rom.mask_addr( data * (blargg_long) bank_size );
 		if ( offset >= rom.size() )
-			set_warning( "Invalid bank" );
+			set_warning( WARN_BANK_INVALID );
 		cpu::map_code( (bank + 8) * bank_size, bank_size, rom.at_addr( offset ) );
 		return;
 	}

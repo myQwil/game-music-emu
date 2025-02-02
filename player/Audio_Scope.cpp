@@ -4,8 +4,6 @@
 
 #include <assert.h>
 #include <stdlib.h>
-#include <sstream>
-#include <stdexcept>
 
 /* Copyright (C) 2005-2006 by Shay Green. Permission is hereby granted, free of
 charge, to any person obtaining a copy of this software module and associated
@@ -42,34 +40,10 @@ static unsigned largest_power_of_2_within(unsigned x)
 	return x - (x >> 1);
 }
 
-// =============
-// Error helpers
-// =============
-
-// If the given SDL return code is an error and if so returns a string
-// with an explanation based on the provided explanation and SDL library
-std::string check_sdl( int ret_code, const char *explanation )
-{
-	static std::string empty;
-	if ( ret_code >= 0 )
-		return empty;
-
-	std::stringstream outstream;
-	outstream << explanation << " " << SDL_GetError();
-	return outstream.str();
-}
-
-// Overload of above
-std::string check_sdl( const void *ptr, const char *explanation )
-{
-	return check_sdl( ptr ? 0 : -1, explanation );
-}
-
-#define RETURN_SDL_ERR(res,msg) do {            \
-	auto check_res = check_sdl( (res), (msg) ); \
-	if( !check_res.empty() ) {                  \
-		return check_res;                       \
-	}                                           \
+#define RETURN_SDL_ERR( expr ) do { \
+	int err_ = (expr); \
+	if ( err_ < 0 ) \
+		return err_; \
 } while (0)
 
 // ===========
@@ -90,7 +64,7 @@ Audio_Scope::~Audio_Scope()
 		SDL_DestroyWindow( window );
 }
 
-std::string Audio_Scope::init( int width, int height )
+blargg_err_t Audio_Scope::init( int width, int height )
 {
 	assert( height <= 16384 );
 	assert( !scope_lines ); // can only call init() once
@@ -98,7 +72,7 @@ std::string Audio_Scope::init( int width, int height )
 	scope_height = height;
 	scope_lines = reinterpret_cast<SDL_Point *>( calloc( width, sizeof( SDL_Point ) ) );
 	if ( !scope_lines )
-		return "Out of memory";
+		return ERR_OUT_OF_MEMORY;
 
 	buf_size = width;
 
@@ -114,32 +88,34 @@ std::string Audio_Scope::init( int width, int height )
 			SDL_WINDOWPOS_UNDEFINED,
 			width, height,
 			0 /* no flags */ );
-	RETURN_SDL_ERR( window, "Couldn't create output window" );
+	if ( !window )
+		return ERR_SDL_CREATE_WINDOW;
 
 	// Render object used to update window (perhaps in video or GPU ram)
 	window_renderer = SDL_CreateRenderer( window, -1, 0 /* no flags */ );
-	RETURN_SDL_ERR( window_renderer, "Couldn't create renderer for output window" );
+	if ( !window_renderer )
+		return ERR_SDL_CREATE_RENDERER;
 
-	return std::string(); // success
+	return 0;
 }
 
-const char* Audio_Scope::draw( const short* in, long count, int step )
+blargg_err_t Audio_Scope::draw( const short* in, long count, int step )
 {
 	if ( count >= buf_size )
 	{
 		count = buf_size;
 	}
 
-	SDL_SetRenderDrawColor( window_renderer, 0, 0, 0, 255 );
-	SDL_RenderClear( window_renderer );
+	RETURN_SDL_ERR( SDL_SetRenderDrawColor( window_renderer, 0, 0, 0, 255 ) );
+	RETURN_SDL_ERR( SDL_RenderClear( window_renderer ) );
 
 	render( in, count, step );
-	SDL_SetRenderDrawColor( window_renderer, 0, 255, 0, 255 );
-	SDL_RenderDrawLines( window_renderer, scope_lines, count );
+	RETURN_SDL_ERR( SDL_SetRenderDrawColor( window_renderer, 0, 255, 0, 255 ) );
+	RETURN_SDL_ERR( SDL_RenderDrawLines( window_renderer, scope_lines, count ) );
 
 	SDL_RenderPresent( window_renderer );
 
-	return nullptr; // success
+	return 0; // success
 }
 
 void Audio_Scope::render( short const* in, long count, int step )

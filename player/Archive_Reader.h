@@ -1,5 +1,27 @@
 #include "blargg_common.h"
 
+static const int arc_err_offset = 128;
+
+enum {
+	ERR_CREATE_ARCHIVE_READER = arc_err_offset,
+#ifdef RARDLL
+	ERR_RAR_CREATE_HANDLE,
+	ERR_RAR_PROCESS
+#endif
+};
+
+static const char* const arc_errmsg[] = {
+	"Failed to create archive reader",
+#ifdef RARDLL
+	"Failed to instantiate RAR handle",
+	"Error processing RAR file"
+#endif
+};
+
+inline const char* arc_strerror( blargg_err_t err ) {
+	return arc_errmsg[err - arc_err_offset];
+}
+
 class Archive_Reader {
 protected:
 	int count_;
@@ -9,7 +31,7 @@ public:
 	int count() const { return count_; }
 	long size() const { return size_; }
 public:
-	virtual blargg_err_t open( const char* path, bool skip = false ) = 0;
+	virtual blargg_err_t open( const char* path ) = 0;
 	virtual blargg_err_t read( void* ) = 0;
 
 	virtual const char* entry_name() const = 0;
@@ -51,7 +73,7 @@ class Rar_Reader : public Archive_Reader {
 	void* bp = nullptr;
 	blargg_err_t restart( RAROpenArchiveData* );
 public:
-	blargg_err_t open( const char* path, bool skip );
+	blargg_err_t open( const char* path );
 	blargg_err_t read( void* );
 
 	const char* entry_name() const { return head.FileName; }

@@ -10,7 +10,7 @@
 #include "M3u_Playlist.h"
 
 // Error returned if file is wrong type
-//extern const char gme_wrong_file_type []; // declared in gme.h
+// ERR_FILE_WRONG_TYPE // declared in blargg_err.h
 
 struct gme_type_t_
 {
@@ -96,7 +96,10 @@ public:
 
 	// Most recent warning string, or NULL if none. Clears current warning after
 	// returning.
-	const char* warning();
+	blargg_err_t warning();
+
+	// Most recent m3u error line when an m3u related parsing error occurs
+	int m3u_error_line();
 
 	// Number of tracks or 0 if no file has been loaded
 	int track_count() const;
@@ -127,7 +130,7 @@ public:
 protected:
 	// Services
 	void set_track_count( int n )       { track_count_ = raw_track_count_ = n; }
-	void set_warning( const char* s )   { warning_ = s; }
+	void set_warning( blargg_err_t e )  { warning_ = e; }
 	void set_type( gme_type_t t )       { type_ = t; }
 	blargg_err_t load_remaining_( void const* header, long header_size, Data_Reader& remaining );
 
@@ -153,7 +156,8 @@ private:
 	gme_type_t type_;
 	int track_count_;
 	int raw_track_count_;
-	const char* warning_;
+	int m3u_error_line_;
+	blargg_err_t warning_;
 	void* user_data_;
 	gme_user_cleanup_t user_cleanup_;
 	M3u_Playlist playlist;
@@ -163,6 +167,7 @@ private:
 
 	blargg_err_t load_m3u_( blargg_err_t );
 	blargg_err_t post_load( blargg_err_t err );
+	void set_m3u_error_line( int e ) { m3u_error_line_ = e; };
 public:
 	// track_info field copying
 	enum { max_field_ = 255 };
@@ -182,14 +187,21 @@ Music_Emu* gme_new_( Music_Emu*, long sample_rate );
 #endif
 
 inline gme_type_t Gme_File::type() const            { return type_; }
-inline int Gme_File::error_count() const            { return warning_ != nullptr; }
+inline int Gme_File::error_count() const            { return warning_ != 0; }
 inline int Gme_File::track_count() const            { return track_count_; }
 
-inline const char* Gme_File::warning()
+inline blargg_err_t Gme_File::warning()
 {
-	const char* s = warning_;
-	warning_ = nullptr;
-	return s;
+	blargg_err_t w = warning_;
+	warning_ = 0;
+	return w;
+}
+
+inline int Gme_File::m3u_error_line()
+{
+	int e = m3u_error_line_;
+	m3u_error_line_ = 0;
+	return e;
 }
 
 #endif

@@ -3,7 +3,7 @@
 #ifndef AUDIO_SCOPE_H
 #define AUDIO_SCOPE_H
 
-#include "SDL.h"
+#include <SDL2/SDL_render.h>
 #include "blargg_err.h"
 
 static const int scope_err_offset = 64;

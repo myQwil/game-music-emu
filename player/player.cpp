@@ -27,7 +27,7 @@ static int const scope_height = 512;
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "SDL.h"
+#include <SDL2/SDL.h>
 #include <cmath>
 
 static const char *usage = R"(

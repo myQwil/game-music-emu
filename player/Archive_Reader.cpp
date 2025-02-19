@@ -50,7 +50,7 @@ blargg_err_t Rar_Reader::open( const char* path )
 blargg_err_t Rar_Reader::read( void* p )
 {
 	bp = p;
-	if ( RARProcessFile( rar, -1, nullptr, nullptr ) != ERAR_SUCCESS )
+	if ( RARProcessFile( rar, RAR_TEST, nullptr, nullptr ) != ERAR_SUCCESS )
 		return ERR_RAR_PROCESS;
 	return 0;
 }

@@ -3,8 +3,8 @@
 #include "Music_Player.h"
 
 #include <string.h>
-#include <ctype.h>
-#include "SDL_rwops.h"
+#include <cstdio>
+#include <SDL2/SDL_rwops.h>
 
 /* Copyright (C) 2005-2010 by Shay Green. Permission is hereby granted, free of
 charge, to any person obtaining a copy of this software module and associated
@@ -331,7 +331,7 @@ void Music_Player::fill_buffer( void* data, sample_t* out, int count )
 
 // Sound output driver using SDL
 
-#include "SDL.h"
+#include <SDL2/SDL_audio.h>
 
 static sound_callback_t sound_callback;
 static void* sound_callback_data;

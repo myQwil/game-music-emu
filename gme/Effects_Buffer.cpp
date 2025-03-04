@@ -363,10 +363,18 @@ long Effects_Buffer::read_samples( blip_sample_t* out, long total_samples )
 	return total_samples * n_channels;
 }
 
+#define BLIP_MONO_READ( i ) \
+	s = BLIP_READER_READ( c ); \
+	BLIP_READER_NEXT( c, bass ); \
+	if ( (int16_t) s != s ) \
+		s = 0x7FFF - (s >> 24); \
+	((uint32_t*) out) [i] = ((uint16_t) s) | (uint16_t(s) << 16)
+
 void Effects_Buffer::mix_mono( blip_sample_t* out_, int32_t count )
 {
     for(int i=0; i<max_voices; i++)
     {
+	int32_t s;
 	blip_sample_t* BLIP_RESTRICT out = out_;
 	int const bass = BLIP_READER_BASS( bufs [i*max_buf_count+0] );
 	BLIP_READER_BEGIN( c, bufs [i*max_buf_count+0] );
@@ -374,30 +382,14 @@ void Effects_Buffer::mix_mono( blip_sample_t* out_, int32_t count )
 	// unrolled loop
 	for ( int32_t n = count >> 1; n; --n )
 	{
-		int32_t cs0 = BLIP_READER_READ( c );
-		BLIP_READER_NEXT( c, bass );
-
-		int32_t cs1 = BLIP_READER_READ( c );
-		BLIP_READER_NEXT( c, bass );
-
-		if ( (int16_t) cs0 != cs0 )
-			cs0 = 0x7FFF - (cs0 >> 24);
-		((uint32_t*) out) [i] = ((uint16_t) cs0) | (uint16_t(cs0) << 16);
-
-		if ( (int16_t) cs1 != cs1 )
-			cs1 = 0x7FFF - (cs1 >> 24);
-		((uint32_t*) out) [i+max_voices] = ((uint16_t) cs1) | (uint16_t(cs1) << 16);
+		BLIP_MONO_READ( i );
+		BLIP_MONO_READ( i + max_voices );
 		out += max_voices*4;
 	}
 
 	if ( count & 1 )
 	{
-		int s = BLIP_READER_READ( c );
-		BLIP_READER_NEXT( c, bass );
-		if ( (int16_t) s != s )
-			s = 0x7FFF - (s >> 24);
-		out [i*2+0] = s;
-		out [i*2+1] = s;
+		BLIP_MONO_READ( i );
 	}
 
 	BLIP_READER_END( c, bufs [i*max_buf_count+0] );

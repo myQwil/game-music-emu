@@ -6,10 +6,10 @@
 
 #include "blargg_config.h"
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <limits.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cassert>
+#include <climits>
 
 #if defined(__GNUC__)
 #define BLARGG_PRINTFN(x,y) __attribute__((__format__(__printf__,x,y)))
@@ -97,6 +97,6 @@ public:
 	((a&0xFF)*0x100L + (b&0xFF))
 
 // int8_t etc.
-#include <stdint.h>
+#include <cstdint>
 
 #endif

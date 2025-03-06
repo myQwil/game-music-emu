@@ -3,6 +3,7 @@
 #include "Music_Player.h"
 
 #include <new>
+#include <memory>
 #include <cstring>
 #include <cctype>
 #include "SDL_rwops.h"
@@ -43,22 +44,14 @@ static void sound_start();
 static void sound_stop();
 static void sound_cleanup();
 
-// GME_4CHAR('a','b','c','d') = 'abcd' (four character integer constant)
-#define GME_4CHAR( a, b, c, d ) \
-	((a&0xFF)*0x1000000L + (b&0xFF)*0x10000L + (c&0xFF)*0x100L + (d&0xFF))
-
 struct arc_type_t {
-	long header;
+	uint32_t signature;
 	Archive_Reader* (*new_arc)();
 };
 
-#ifdef RARDLL
-static Archive_Reader* new_rar_reader() { return new (std::nothrow) Rar_Reader; }
-#endif
-
 static const arc_type_t arcs[] = {
 #ifdef RARDLL
-	{ GME_4CHAR('R','a','r','!'), &new_rar_reader },
+	{ Rar_Reader::signature, []{ return (Archive_Reader*)new (std::nothrow) Rar_Reader; } },
 #endif
 	{ 0, nullptr }
 };
@@ -100,16 +93,19 @@ Music_Player::~Music_Player()
 // check if file is an archive
 const arc_type_t* identify_archive( const char* path )
 {
-	long header;
-	char h[4];
 	FILE *in = fopen( path, "rb" );
 	if ( !in )
 		return nullptr;
-	fread( h, 1, sizeof h, in );
+
+	char h[4];
+	size_t read = fread( h, sizeof( char ), sizeof h, in );
 	fclose( in );
-	header = GME_4CHAR( h[0], h[1], h[2], h[3] );
-	for ( const arc_type_t* arc = arcs; arc->header; arc++ )
-		if ( arc->header == header )
+	if ( read != sizeof h )
+		return nullptr;
+
+	uint32_t signature = GME_4CHAR( h[0], h[1], h[2], h[3] );
+	for ( const arc_type_t* arc = arcs; arc->signature; arc++ )
+		if ( arc->signature == signature )
 			return arc;
 	return nullptr;
 }
@@ -155,7 +151,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 		const arc_type_t* arc = identify_archive( path );
 		if ( arc )
 		{
-			Archive_Reader* ptr = arc->new_arc();
+			std::unique_ptr<Archive_Reader> ptr(arc->new_arc());
 			if ( !ptr )
 				return "Failed to create archive reader";
 			Archive_Reader& in = *ptr;
@@ -168,20 +164,21 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 			int n = 0;
 			uint8_t *bp = buf.begin();
 			gme_type_t emu_type = nullptr;
-			while( in.next_entry() )
+			arc_entry_t entry;
+			gme_err_t res;
+			while ( !(res = in.next( bp, &entry )) )
 			{ // copy data and file sizes
 				gme_type_t t;
-				RETURN_ERR( in.read( bp ) );
-				if ( (t = gme_identify_extension( in.entry_name() ))
-				&& gme_fixed_track_count( t ) == 1 )
-				{
-					if ( !emu_type )
-						emu_type = t;
-					if ( t == emu_type )
-						bp += (sizes[n++] = in.entry_size());
-				}
+				if ( !(t = gme_identify_extension( entry.name ))
+				|| gme_fixed_track_count( t ) != 1 )
+					continue;
+				if ( !emu_type )
+					emu_type = t;
+				if ( t == emu_type )
+					bp += (sizes[n++] = entry.size);
 			}
-			delete ptr;
+			if ( res != arc_eof )
+				return res;
 
 			if ( !emu_type )
 				return gme_wrong_file_type;

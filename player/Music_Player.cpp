@@ -53,6 +53,9 @@ static const arc_type_t arcs[] = {
 #ifdef RARDLL
 	{ Rar_Reader::signature, []{ return (Archive_Reader*)new (std::nothrow) Rar_Reader; } },
 #endif
+#ifdef HAVE_LIBARCHIVE
+	{ Zip_Reader::signature, []{ return (Archive_Reader*)new (std::nothrow) Zip_Reader; } },
+#endif
 	{ 0, nullptr }
 };
 

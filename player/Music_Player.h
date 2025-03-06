@@ -50,6 +50,9 @@ public:
 	// Disable echo at SPC files
 	void set_echo_disable( bool );
 
+	// Set volume, 0 for silence and 1 for full volume
+	void set_volume( double );
+
 	// Set voice muting bitmask
 	void mute_voices( int );
 
@@ -77,6 +80,7 @@ private:
 	int scope_buf_size;
 	bool paused;
 	gme_info_t* track_info_;
+	double volume;
 
 	void suspend();
 	void resume();

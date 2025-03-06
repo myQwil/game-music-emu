@@ -4,9 +4,6 @@
 #ifndef MUSIC_PLAYER_H
 #define MUSIC_PLAYER_H
 
-#include <cstddef>
-#include <cassert>
-#include <cstdlib>
 #include "gme/gme.h"
 
 class Music_Player {
@@ -83,34 +80,6 @@ private:
 	void suspend();
 	void resume();
 	static void fill_buffer( void*, sample_t*, int );
-};
-
-// gme_vector - very lightweight vector of POD types (no constructor/destructor)
-template<class T>
-class gme_vector {
-	T* begin_;
-	size_t size_;
-public:
-	gme_vector() : begin_( nullptr ), size_( 0 ) { }
-	~gme_vector() { free( begin_ ); }
-	size_t size() const { return size_; }
-	T* begin() const { return begin_; }
-	T* end() const { return begin_ + size_; }
-	gme_err_t resize( size_t n )
-	{
-		void* p = realloc( begin_, n * sizeof (T) );
-		if ( !p && n )
-			return "Out of memory";
-		begin_ = (T*) p;
-		size_ = n;
-		return nullptr;
-	}
-	void clear() { free( begin_ ); begin_ = nullptr; size_ = 0; }
-	T& operator [] ( size_t n ) const
-	{
-		assert( n <= size_ ); // <= to allow past-the-end value
-		return begin_ [n];
-	}
 };
 
 #endif

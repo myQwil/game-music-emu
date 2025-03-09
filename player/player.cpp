@@ -28,7 +28,7 @@ static int const scope_height = 512;
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
-#include "SDL.h"
+#include <SDL2/SDL.h>
 
 static const char *usage = R"(
 Left/Right  Change track

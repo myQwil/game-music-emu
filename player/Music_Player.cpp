@@ -6,7 +6,7 @@
 #include <memory>
 #include <cstring>
 #include <cctype>
-#include "SDL_rwops.h"
+#include <SDL2/SDL_rwops.h>
 #include "Archive_Reader.h"
 
 /* Copyright (C) 2005-2010 by Shay Green. Permission is hereby granted, free of
@@ -355,7 +355,7 @@ void Music_Player::fill_buffer( void* data, sample_t* out, int count )
 
 // Sound output driver using SDL
 
-#include "SDL_audio.h"
+#include <SDL2/SDL_audio.h>
 
 static sound_callback_t sound_callback;
 static void* sound_callback_data;

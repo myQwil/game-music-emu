@@ -34,8 +34,13 @@
 /* Like printf() except output goes to debug log file. Might be defined to do
  * nothing (not even evaluate its arguments).
  * void debug_printf( const char* format, ... ); */
-static inline void BLARGG_PRINTFN(1,2)
+#if defined(__GNUC__)
+	static inline void __attribute__((__format__(__printf__,1,2)))
 		blargg_dprintf_( const char* fmt_str, ... ) { (void) fmt_str; }
+#else
+	static inline void blargg_dprintf_( const char* fmt_str, ... ) { (void) fmt_str; }
+#endif
+
 #undef debug_printf
 #define debug_printf (1) ? (void) 0 : blargg_dprintf_
 

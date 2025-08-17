@@ -19,7 +19,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 Hes_Apu_Adpcm::Hes_Apu_Adpcm()
 {
-	output = NULL;
+	output = nullptr;
 
 	memset( &state, 0, sizeof( state ) );
 

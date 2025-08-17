@@ -26,7 +26,7 @@ using std::min;
 
 Kss_Emu::Kss_Emu()
 {
-	sn = 0;
+	sn = nullptr;
 	set_type( gme_kss_type );
 	set_silence_lookahead( 6 );
 	static const char* const names [osc_count] = {
@@ -49,7 +49,7 @@ Kss_Emu::~Kss_Emu() { unload(); }
 void Kss_Emu::unload()
 {
 	delete sn;
-	sn = 0;
+	sn = nullptr;
 	Classic_Emu::unload();
 }
 
@@ -73,14 +73,14 @@ static void copy_kss_fields( Kss_Emu::header_t const& h, track_info_t* out )
 blargg_err_t Kss_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_kss_fields( header_, out );
-	return 0;
+	return nullptr;
 }
 
 static blargg_err_t check_kss_header( void const* header )
 {
 	if ( memcmp( header, "KSCC", 4 ) && memcmp( header, "KSSX", 4 ) )
 		return gme_wrong_file_type;
-	return 0;
+	return nullptr;
 }
 
 struct Kss_File : Gme_Info_
@@ -100,7 +100,7 @@ struct Kss_File : Gme_Info_
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_kss_fields( header_, out );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -259,7 +259,7 @@ blargg_err_t Kss_Emu::start_track_( int track )
 	update_gain();
 	ay_latch = 0;
 
-	return 0;
+	return nullptr;
 }
 
 void Kss_Emu::set_bank( int logical, int physical )
@@ -418,5 +418,5 @@ blargg_err_t Kss_Emu::run_clocks( blip_time_t& duration, int )
 	if ( sn )
 		sn->end_frame( duration );
 
-	return 0;
+	return nullptr;
 }

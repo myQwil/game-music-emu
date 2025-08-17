@@ -13,7 +13,7 @@ public:
 
 	// Sets buffer(s) to generate sound into, or 0 to mute. If only center is not 0,
 	// output is mono.
-	void set_output( Blip_Buffer* center, Blip_Buffer* left = NULL, Blip_Buffer* right = NULL );
+	void set_output( Blip_Buffer* center, Blip_Buffer* left = nullptr, Blip_Buffer* right = nullptr );
 
 	// Emulates to time t, then writes data to addr
 	void write_data( blip_time_t t, int addr, int data );
@@ -32,7 +32,7 @@ public:
 	
 	// Same as set_output(), but for a particular channel
 	static const int osc_count =  1; // 0 <= chan < osc_count
-	void set_output( int chan, Blip_Buffer* center, Blip_Buffer* left = NULL, Blip_Buffer* right = NULL );
+	void set_output( int chan, Blip_Buffer* center, Blip_Buffer* left = nullptr, Blip_Buffer* right = nullptr );
 	
 	// Sets treble equalization
 	void treble_eq( blip_eq_t const& eq )   { synth.treble_eq( eq ); }

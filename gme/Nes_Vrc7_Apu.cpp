@@ -12,7 +12,7 @@ static int const period = 36; // NES CPU clocks per FM clock
 
 Nes_Vrc7_Apu::Nes_Vrc7_Apu()
 {
-	opll = 0;
+	opll = nullptr;
 }
 
 blargg_err_t Nes_Vrc7_Apu::init()
@@ -21,10 +21,10 @@ blargg_err_t Nes_Vrc7_Apu::init()
 	OPLL_setChipType((OPLL *) opll, 1);
 	OPLL_resetPatch((OPLL *) opll, 1);
 
-	set_output( 0 );
+	set_output( nullptr );
 	volume( 1.0 );
 	reset();
-	return 0;
+	return nullptr;
 }
 
 Nes_Vrc7_Apu::~Nes_Vrc7_Apu()
@@ -47,7 +47,7 @@ void Nes_Vrc7_Apu::output_changed()
 	{
 		if ( mono.output != oscs [i].output )
 		{
-			mono.output = 0;
+			mono.output = nullptr;
 			break;
 		}
 	}

@@ -126,7 +126,7 @@ blip_time_t Vgm_Emu_Impl::run_commands( vgm_time_t end_time )
 	{
 		set_track_ended();
 		if ( pos > data_end )
-			set_warning( "Stream lacked end event" );
+			set_warning( WARN_STREAM_END_EVENT_MISSING );
 	}
 
 	while ( vgm_time < end_time && pos < data_end )
@@ -266,7 +266,7 @@ blip_time_t Vgm_Emu_Impl::run_commands( vgm_time_t end_time )
 
 				default:
 					pos += command_len( cmd ) - 1;
-					set_warning( "Unknown stream event" );
+					set_warning( WARN_STREAM_EVENT_UNKNOWN );
 			}
 		}
 	}

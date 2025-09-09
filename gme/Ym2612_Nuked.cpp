@@ -1827,15 +1827,15 @@ Ym2612_Nuked_Emu::~Ym2612_Nuked_Emu()
 	if ( chip_r ) delete chip_r;
 }
 
-const char *Ym2612_Nuked_Emu::set_rate(double sample_rate, double clock_rate)
+blargg_err_t Ym2612_Nuked_Emu::set_rate(double sample_rate, double clock_rate)
 {
 	Ym2612_NukedImpl::ym3438_t *chip_r = reinterpret_cast<Ym2612_NukedImpl::ym3438_t*>(impl);
 	if ( !chip_r )
-		return "Out of memory";
+		return ERR_OUT_OF_MEMORY;
 	prev_sample_rate = sample_rate;
 	prev_clock_rate = clock_rate;
 	Ym2612_NukedImpl::OPN2_Reset( chip_r, static_cast<Bit32u>(sample_rate), static_cast<Bit32u>(clock_rate) );
-	return nullptr;
+	return 0;
 }
 
 void Ym2612_Nuked_Emu::reset()

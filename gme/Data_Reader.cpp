@@ -29,10 +29,8 @@ static const unsigned char gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
 
 using std::max;
 
-const char Data_Reader::eof_error [] = "Unexpected end of file";
-
 #define RETURN_VALIDITY_CHECK( cond ) \
-	do { if ( unlikely( !(cond) ) ) return "Corrupt file"; } while(0)
+	do { if ( unlikely( !(cond) ) ) return ERR_FILE_CORRUPT; } while(0)
 
 blargg_err_t Data_Reader::read( void* p, long s )
 {
@@ -42,12 +40,12 @@ blargg_err_t Data_Reader::read( void* p, long s )
 	if ( result != s )
 	{
 		if ( result >= 0 && result < s )
-			return eof_error;
+			return ERR_EOF;
 
-		return "Read error";
+		return ERR_READ;
 	}
 
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Data_Reader::skip( long count )
@@ -63,7 +61,7 @@ blargg_err_t Data_Reader::skip( long count )
 		count -= n;
 		RETURN_ERR( read( buf, n ) );
 	}
-	return nullptr;
+	return 0;
 }
 
 long File_Reader::remain() const { return size() - tell(); }
@@ -73,7 +71,7 @@ blargg_err_t File_Reader::skip( long n )
 	RETURN_VALIDITY_CHECK( n >= 0 );
 
 	if ( !n )
-		return nullptr;
+		return 0;
 	return seek( tell() + n );
 }
 
@@ -144,7 +142,7 @@ blargg_err_t Remaining_Reader::read( void* out, long count )
 	long first = read_first( out, count );
 	long second = max( 0l, count - first );
 	if ( !second )
-		return nullptr;
+		return 0;
 	return in->read( (char*) out + first, second );
 }
 
@@ -193,9 +191,9 @@ blargg_err_t Mem_File_Reader::seek( long n )
 {
 	RETURN_VALIDITY_CHECK( n >= 0 );
 	if ( n > m_size )
-		return eof_error;
+		return ERR_EOF;
 	m_pos = n;
-	return nullptr;
+	return 0;
 }
 
 #ifdef HAVE_ZLIB_H
@@ -297,7 +295,7 @@ blargg_err_t Callback_Reader::read( void* out, long count )
 {
 	RETURN_VALIDITY_CHECK( count >= 0 );
 	if ( count > remain_ )
-		return eof_error;
+		return ERR_EOF;
 	return callback( data, out, (int) count );
 }
 
@@ -305,11 +303,11 @@ blargg_err_t Callback_Reader::read( void* out, long count )
 
 #ifdef HAVE_ZLIB_H
 
-static const char* get_gzip_eof( const char* path, long* eof )
+static blargg_err_t get_gzip_eof( const char* path, long* eof )
 {
 	FILE* file = fopen( path, "rb" );
 	if ( !file )
-		return "Couldn't open file";
+		return ERR_FILE_CANT_OPEN;
 
 	unsigned char buf [4];
 	bool found_eof = false;
@@ -326,7 +324,7 @@ static const char* get_gzip_eof( const char* path, long* eof )
 		fseek( file, 0, SEEK_END );
 		*eof = ftell( file );
 	}
-	const char* err = (ferror( file ) || feof( file )) ? "Couldn't get file size" : nullptr;
+	blargg_err_t err = (ferror( file ) || feof( file )) ? ERR_FILE_CANT_GET_SIZE : 0;
 	fclose( file );
 	return err;
 }
@@ -354,8 +352,8 @@ blargg_err_t Std_File_Reader::open( const char* path )
 #endif
 
 	if ( !file_ )
-		return "Couldn't open file";
-	return nullptr;
+		return ERR_FILE_CANT_OPEN;
+	return 0;
 }
 
 long Std_File_Reader::size() const
@@ -391,23 +389,23 @@ long Std_File_Reader::read_avail( void* p, long s )
 blargg_err_t Std_File_Reader::read( void* p, long s )
 {
 	if ( !file_ )
-		return "NULL FILE pointer";
+		return ERR_FILE_NULL_PTR;
 
 	RETURN_VALIDITY_CHECK( s > 0 && static_cast<unsigned long>(s) <= UINT_MAX );
 #ifdef HAVE_ZLIB_H
 	const auto &gzfile = reinterpret_cast<gzFile>( file_ );
 	if ( s == gzread( gzfile, p, static_cast<unsigned>( s ) ) )
-		return nullptr;
+		return 0;
 	if ( gzeof( gzfile ) )
-		return eof_error;
-	return "Couldn't read from GZ file";
+		return ERR_EOF;
+	return ERR_GZ_CANT_READ;
 #else
 	const auto &file = reinterpret_cast<FILE*>( file_ );
 	if ( s == static_cast<long>( fread( p, 1, static_cast<size_t>(s), file ) ) )
-		return nullptr;
+		return 0;
 	if ( feof( file ) )
-		return eof_error;
-	return "Couldn't read from file";
+		return ERR_EOF;
+	return ERR_FILE_CANT_READ;
 #endif
 }
 
@@ -425,19 +423,19 @@ long Std_File_Reader::tell() const
 blargg_err_t Std_File_Reader::seek( long n )
 {
 	if ( !file_ )
-		return "NULL FILE pointer";
+		return ERR_FILE_NULL_PTR;
 #ifdef HAVE_ZLIB_H
 	if ( gzseek( reinterpret_cast<gzFile>( file_ ), n, SEEK_SET ) >= 0 )
-		return nullptr;
+		return 0;
 	if ( n > size_ )
-		return eof_error;
-	return "Error seeking in GZ file";
+		return ERR_EOF;
+	return ERR_GZ_CANT_SEEK;
 #else
 	if ( !fseek( reinterpret_cast<FILE*>( file_ ), n, SEEK_SET ) )
-		return nullptr;
+		return 0;
 	if ( n > size() )
-		return eof_error;
-	return "Error seeking in file";
+		return ERR_EOF;
+	return ERR_FILE_CANT_SEEK;
 #endif
 }
 

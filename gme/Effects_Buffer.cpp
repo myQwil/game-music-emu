@@ -105,7 +105,7 @@ blargg_err_t Effects_Buffer::set_sample_rate( long rate, int msec ) noexcept
 
 		if ( !echo_buf[i].size() || !reverb_buf[i].size() )
 		{
-			return "Out of memory";
+			return ERR_OUT_OF_MEMORY;
 		}
 	}
 

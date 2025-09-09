@@ -60,7 +60,7 @@
 /* If ptr is 0, return out of memory error string. */
 #undef CHECK_ALLOC
 #define CHECK_ALLOC( ptr ) do {                         \
-		if ( (ptr) == nullptr ) return "Out of memory"; \
+		if ( (ptr) == nullptr ) return ERR_OUT_OF_MEMORY; \
 	} while ( 0 )
 
 /* TODO: good idea? bad idea? */

@@ -10,13 +10,13 @@
 class Music_Player {
 public:
 	// Initialize player and set sample rate
-	gme_err_t init( uint32_t sample_rate = 44100 );
+	const char* init( uint32_t sample_rate = 44100 );
 
 	// Load game music file. NULL on success, otherwise error string.
-	gme_err_t load_file( const char* path, bool by_mem );
+	const char* load_file( const char* path, bool by_mem );
 
 	// (Re)start playing track. Tracks are numbered from 0 to track_count() - 1.
-	gme_err_t start_track( int track );
+	const char* start_track( int track );
 
 	// Stop playing current file
 	void stop();

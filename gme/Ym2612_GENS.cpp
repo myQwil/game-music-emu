@@ -826,20 +826,20 @@ void Ym2612_GENS_Impl::set_rate( double sample_rate, double clock_rate )
 	reset();
 }
 
-const char* Ym2612_GENS_Emu::set_rate( double sample_rate, double clock_rate )
+blargg_err_t Ym2612_GENS_Emu::set_rate( double sample_rate, double clock_rate )
 {
 	if ( !impl )
 	{
 		impl = (Ym2612_GENS_Impl*) malloc( sizeof *impl );
 		if ( !impl )
-			return "Out of memory";
+			return ERR_OUT_OF_MEMORY;
 		impl->mute_mask = 0;
 	}
 	memset( &impl->YM2612, 0, sizeof impl->YM2612 );
 
 	impl->set_rate( sample_rate, clock_rate );
 
-	return nullptr;
+	return 0;
 }
 
 Ym2612_GENS_Emu::~Ym2612_GENS_Emu()

@@ -81,7 +81,7 @@ static void get_gym_info( Gym_Emu::header_t const& h, long length, track_info_t*
 blargg_err_t Gym_Emu::track_info_( track_info_t* out, int ) const
 {
 	get_gym_info( header_, track_length(), out );
-	return nullptr;
+	return 0;
 }
 
 static long gym_track_length( byte const* p, byte const* end )
@@ -113,25 +113,25 @@ long Gym_Emu::track_length() const { return gym_track_length( data, data_end ); 
 static blargg_err_t check_header( byte const* in, long size, int* data_offset = nullptr )
 {
 	if ( size < 4 )
-		return gme_wrong_file_type;
+		return ERR_FILE_WRONG_TYPE;
 
 	if ( memcmp( in, "GYMX", 4 ) == 0 )
 	{
 		if ( size < Gym_Emu::header_size + 1 )
-			return gme_wrong_file_type;
+			return ERR_FILE_WRONG_TYPE;
 
 		if ( memcmp( ((Gym_Emu::header_t const*) in)->packed, "\0\0\0\0", 4 ) != 0 )
-			return "Packed GYM file not supported";
+			return ERR_GYM_PACKED_NOT_SUPPORTED;
 
 		if ( data_offset )
 			*data_offset = Gym_Emu::header_size;
 	}
 	else if ( *in > 3 )
 	{
-		return gme_wrong_file_type;
+		return ERR_FILE_WRONG_TYPE;
 	}
 
-	return nullptr;
+	return 0;
 }
 
 struct Gym_File : Gme_Info_
@@ -154,7 +154,7 @@ struct Gym_File : Gme_Info_
 	{
 		long length = gym_track_length( &file_begin [data_offset], file_end );
 		get_gym_info( *(Gym_Emu::header_t const*) file_begin, length, out );
-		return nullptr;
+		return 0;
 	}
 };
 
@@ -182,7 +182,7 @@ blargg_err_t Gym_Emu::set_sample_rate_( long sample_rate )
 	RETURN_ERR( fm.set_rate( fm_sample_rate, base_clock / 7.0 ) );
 	RETURN_ERR( Dual_Resampler::reset( long (1.0 / 60 / min_tempo * sample_rate) ) );
 
-	return nullptr;
+	return 0;
 }
 
 void Gym_Emu::set_tempo_( double t )
@@ -224,7 +224,7 @@ blargg_err_t Gym_Emu::load_mem_( byte const* in, long size )
 	else
 		memset( &header_, 0, sizeof header_ );
 
-	return nullptr;
+	return 0;
 }
 
 // Emulation
@@ -244,7 +244,7 @@ blargg_err_t Gym_Emu::start_track_( int track )
 	apu.reset();
 	blip_buf.clear();
 	Dual_Resampler::clear();
-	return nullptr;
+	return 0;
 }
 
 void Gym_Emu::run_dac( int dac_count )
@@ -376,5 +376,5 @@ int Gym_Emu::play_frame( blip_time_t blip_time, int sample_count, sample_t* buf 
 blargg_err_t Gym_Emu::play_( long count, sample_t* out )
 {
 	Dual_Resampler::dual_play( count, out, blip_buf );
-	return nullptr;
+	return 0;
 }

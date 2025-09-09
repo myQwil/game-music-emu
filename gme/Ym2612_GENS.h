@@ -4,6 +4,8 @@
 #ifndef YM2612_EMU_H
 #define YM2612_EMU_H
 
+#include "blargg_err.h"
+
 struct Ym2612_GENS_Impl;
 
 class Ym2612_GENS_Emu  {
@@ -14,7 +16,7 @@ public:
 
 	// Set output sample rate and chip clock rates, in Hz. Returns non-zero
 	// if error.
-	const char* set_rate( double sample_rate, double clock_rate );
+	blargg_err_t set_rate( double sample_rate, double clock_rate );
 
 	// Reset to power-up state
 	void reset();

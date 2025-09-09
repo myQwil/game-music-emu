@@ -18,8 +18,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-const char* const gme_wrong_file_type = "Wrong file type for this emulator";
-
 void Gme_File::clear_playlist()
 {
 	playlist.clear();
@@ -99,7 +97,7 @@ blargg_err_t Gme_File::load_tracks( void const* in, long* sizes, int count )
 {
 	pre_load();
 	if ( type()->track_count != 1 )
-		return "File type must have a fixed track count of 1";
+		return ERR_TRACK_SINGLE_ONLY;
 	set_track_count( count );
 	RETURN_ERR( tracks.resize( count + 1 ) );
 	long size = 0;
@@ -175,7 +173,7 @@ void Gme_File::copy_field_( char* out, const char* in )
 blargg_err_t Gme_File::remap_track_( int* track_io ) const
 {
 	if ( (unsigned) *track_io >= (unsigned) track_count() )
-		return "Invalid track";
+		return ERR_TRACK_INVALID;
 
 	if ( (unsigned) *track_io < (unsigned) playlist.size() )
 	{
@@ -188,13 +186,13 @@ blargg_err_t Gme_File::remap_track_( int* track_io ) const
 				*track_io -= e.decimal_track;
 		}
 		if ( *track_io >= raw_track_count_ )
-			return "Invalid track in m3u playlist";
+			return ERR_M3U_TRACK_INVALID;
 	}
 	else
 	{
 		check( !playlist.size() );
 	}
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Gme_File::track_info( track_info_t* out, int track ) const
@@ -251,5 +249,5 @@ blargg_err_t Gme_File::track_info( track_info_t* out, int track ) const
 		if ( e.fade   >= 0 ) out->fade_length  = e.fade;
 		if ( e.repeat >= 0 ) out->repeat_count = e.repeat;
 	}
-	return nullptr;
+	return 0;
 }

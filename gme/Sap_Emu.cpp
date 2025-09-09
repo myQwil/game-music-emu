@@ -109,7 +109,7 @@ static blargg_err_t parse_info( byte const* in, long size, Sap_Emu::info_t* out 
 	out->copyright [0] = 0;
 
 	if ( size < 16 || memcmp( in, "SAP\x0D\x0A", 5 ) )
-		return gme_wrong_file_type;
+		return ERR_FILE_WRONG_TYPE;
 
 	byte const* file_end = in + size - 5;
 	in += 5;
@@ -134,25 +134,25 @@ static blargg_err_t parse_info( byte const* in, long size, Sap_Emu::info_t* out 
 		{
 			out->init_addr = from_hex( in );
 			if ( (unsigned long) out->init_addr > 0xFFFF )
-				return "Invalid init address";
+				return ERR_ADDRESS_INVALID_INIT;
 		}
 		else if ( !strncmp( "PLAYER", tag, tag_len ) )
 		{
 			out->play_addr = from_hex( in );
 			if ( (unsigned long) out->play_addr > 0xFFFF )
-				return "Invalid play address";
+				return ERR_ADDRESS_INVALID_PLAY;
 		}
 		else if ( !strncmp( "MUSIC", tag, tag_len ) )
 		{
 			out->music_addr = from_hex( in );
 			if ( (unsigned long) out->music_addr > 0xFFFF )
-				return "Invalid music address";
+				return ERR_ADDRESS_INVALID_MUSIC;
 		}
 		else if ( !strncmp( "SONGS", tag, tag_len ) )
 		{
 			out->track_count = from_dec( in, line_end );
 			if ( out->track_count <= 0 )
-				return "Invalid track count";
+				return ERR_TRACK_COUNT_INVALID;
 		}
 		else if ( !strncmp( "TYPE", tag, tag_len ) )
 		{
@@ -163,10 +163,10 @@ static blargg_err_t parse_info( byte const* in, long size, Sap_Emu::info_t* out 
 				break;
 
 			case 'D':
-				return "Digimusic not supported";
+				return ERR_DIGIMUSIC_NOT_SUPPORTED;
 
 			default:
-				return "Unsupported player type";
+				return ERR_PLAYER_TYPE_NOT_SUPPORTED;
 			}
 		}
 		else if ( !strncmp( "STEREO", tag, tag_len ) )
@@ -177,7 +177,7 @@ static blargg_err_t parse_info( byte const* in, long size, Sap_Emu::info_t* out 
 		{
 			out->fastplay = from_dec( in, line_end );
 			if ( out->fastplay <= 0 )
-				return "Invalid fastplay value";
+				return ERR_FASTPLAY_VALUE_INVALID;
 		}
 		else if ( !strncmp( "AUTHOR", tag, tag_len ) )
 		{
@@ -196,10 +196,10 @@ static blargg_err_t parse_info( byte const* in, long size, Sap_Emu::info_t* out 
 	}
 
 	if ( in [0] != 0xFF || in [1] != 0xFF )
-		return "ROM data missing";
+		return ERR_ROM_DATA_MISSING;
 	out->rom_data = in + 2;
 
-	return nullptr;
+	return 0;
 }
 
 static void copy_sap_fields( Sap_Emu::info_t const& in, track_info_t* out )
@@ -212,7 +212,7 @@ static void copy_sap_fields( Sap_Emu::info_t const& in, track_info_t* out )
 blargg_err_t Sap_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_sap_fields( info, out );
-	return nullptr;
+	return 0;
 }
 
 struct Sap_File : Gme_Info_
@@ -225,13 +225,13 @@ struct Sap_File : Gme_Info_
 	{
 		RETURN_ERR( parse_info( begin, size, &info ) );
 		set_track_count( info.track_count );
-		return nullptr;
+		return 0;
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_sap_fields( info, out );
-		return nullptr;
+		return 0;
 	}
 };
 
@@ -247,7 +247,7 @@ blargg_err_t Sap_Emu::load_mem_( byte const* in, long size )
 {
 	file_end = in + size;
 
-	info.warning    = nullptr;
+	info.warning    = 0;
 	info.type       = 'B';
 	info.stereo     = false;
 	info.init_addr  = -1;
@@ -342,13 +342,13 @@ blargg_err_t Sap_Emu::start_track_( int track )
 		in += 4;
 		if ( end < start )
 		{
-			set_warning( "Invalid file data block" );
+			set_warning( WARN_FILE_DATA_BLOCK_INVALID );
 			break;
 		}
 		long len = end - start + 1;
 		if ( len > file_end - in )
 		{
-			set_warning( "Invalid file data block" );
+			set_warning( WARN_FILE_DATA_BLOCK_INVALID );
 			break;
 		}
 
@@ -367,7 +367,7 @@ blargg_err_t Sap_Emu::start_track_( int track )
 
 	next_play = play_period();
 
-	return nullptr;
+	return 0;
 }
 
 // Emulation
@@ -415,7 +415,7 @@ blargg_err_t Sap_Emu::run_clocks( blip_time_t& duration, int )
 	while ( time() < duration )
 	{
 		if ( cpu::run( duration ) || r.pc > idle_addr )
-			return "Emulation error (illegal instruction)";
+			return ERR_EMU_INSTRUCTION_ILLEGAL;
 
 		if ( r.pc == idle_addr )
 		{
@@ -442,5 +442,5 @@ blargg_err_t Sap_Emu::run_clocks( blip_time_t& duration, int )
 	if ( info.stereo )
 		apu2.end_frame( duration );
 
-	return nullptr;
+	return 0;
 }

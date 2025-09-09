@@ -15,8 +15,6 @@ class Data_Reader {
 public:
 	virtual ~Data_Reader() { }
 
-	static const char eof_error []; // returned by read() when request goes beyond end
-
 	// Read at most count bytes and return number actually read, or <= 0 if error
 	virtual long read_avail( void*, long n ) = 0;
 
@@ -134,7 +132,7 @@ private:
 // Invokes callback function to read data. Size of data must be specified in advance.
 class Callback_Reader : public Data_Reader {
 public:
-	typedef const char* (*callback_t)( void* data, void* out, int count );
+	typedef int (*callback_t)( void* data, void* out, int count );
 	Callback_Reader( callback_t, long size, void* data = nullptr );
 public:
 	long read_avail( void*, long );

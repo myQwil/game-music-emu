@@ -14,6 +14,7 @@ gme_load_data
 gme_load_file
 gme_load_m3u
 gme_load_m3u_data
+gme_m3u_error_line
 gme_multi_channel
 gme_mute_voice
 gme_mute_voices
@@ -32,6 +33,8 @@ gme_set_tempo
 gme_set_user_cleanup
 gme_set_user_data
 gme_start_track
+gme_strerror
+gme_strwarn
 gme_tell
 gme_tell_samples
 gme_track_count
@@ -46,7 +49,6 @@ gme_user_data
 gme_voice_count
 gme_voice_name
 gme_warning
-gme_wrong_file_type
 gme_ay_type
 gme_gbs_type
 gme_gym_type

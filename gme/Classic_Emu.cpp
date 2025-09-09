@@ -57,7 +57,7 @@ blargg_err_t Classic_Emu::set_sample_rate_( long rate )
 blargg_err_t Classic_Emu::set_multi_channel ( bool is_enabled )
 {
         RETURN_ERR( Music_Emu::set_multi_channel_( is_enabled ) );
-        return nullptr;
+        return 0;
 }
 
 void Classic_Emu::mute_voices_( int mask )
@@ -91,14 +91,14 @@ blargg_err_t Classic_Emu::setup_buffer( long rate )
 	RETURN_ERR( buf->set_channel_count( voice_count() ) );
 	set_equalizer( equalizer() );
 	buf_changed_count = buf->channels_changed_count();
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Classic_Emu::start_track_( int track )
 {
 	RETURN_ERR( Music_Emu::start_track_( track ) );
 	buf->clear();
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Classic_Emu::play_( long count, sample_t* out )
@@ -121,7 +121,7 @@ blargg_err_t Classic_Emu::play_( long count, sample_t* out )
 			buf->end_frame( clocks_emulated );
 		}
 	}
-	return nullptr;
+	return 0;
 }
 
 // Rom_Data
@@ -138,7 +138,7 @@ blargg_err_t Rom_Data_::load_rom_data_( Data_Reader& in,
 
 	file_size_ = in.remain();
 	if ( file_size_ <= header_size ) // <= because there must be data after header
-		return gme_wrong_file_type;
+		return ERR_FILE_WRONG_TYPE;
 	blargg_err_t err = rom.resize( file_offset + file_size_ + pad_size );
 	if ( !err )
 		err = in.read( rom.begin() + file_offset, file_size_ );
@@ -154,7 +154,7 @@ blargg_err_t Rom_Data_::load_rom_data_( Data_Reader& in,
 	memset( rom.begin()         , fill, pad_size );
 	memset( rom.end() - pad_size, fill, pad_size );
 
-	return nullptr;
+	return 0;
 }
 
 void Rom_Data_::set_addr_( long addr, int unit )

@@ -17,7 +17,7 @@ public:
 	~Sap_Emu();
 	struct info_t {
 		byte const* rom_data;
-		const char* warning;
+		blargg_err_t warning;
 		long init_addr;
 		long play_addr;
 		long music_addr;

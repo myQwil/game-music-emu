@@ -71,11 +71,11 @@ errors, incompatible file data). Your code should check all error
 values.
 
 When loading a music file in the wrong emulator or trying to load a
-non-music file, gme_wrong_file_type is returned. You can check for this
+non-music file, ERR_FILE_WRONG_TYPE is returned. You can check for this
 error in C++ like this:
 
 	gme_err_t err = gme_open_file( path, &emu );
-	if ( err == gme_wrong_file_type )
+	if ( err == ERR_FILE_WRONG_TYPE )
 		...
 
 To check for minor problems, call gme_warning() to get a string

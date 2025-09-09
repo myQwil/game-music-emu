@@ -5,7 +5,6 @@
 
 #include "SDL_render.h"
 #include "SDL_video.h"
-#include "gme/gme.h"
 
 #include <string>
 
@@ -18,7 +17,7 @@ public:
 	// Draw at most 'count' samples from 'in', skipping 'step' samples after
 	// each sample drawn. Step should be 2 but wouldn't be hard to adapt
 	// to be 1.
-	gme_err_t draw( const short* in, uint32_t count, int step = 2 );
+	const char* draw( const short* in, uint32_t count, int step = 2 );
 
 	Audio_Scope();
 	~Audio_Scope();

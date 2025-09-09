@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void handle_error( const char* str );
+void handle_error( int );
 
 char * dump_file(const char*file_path, size_t *size)
 {
@@ -74,11 +74,11 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void handle_error( const char* str )
+void handle_error( int err )
 {
-	if ( str )
+	if ( err )
 	{
-		printf( "Error: %s\n", str ); getchar();
+		printf( "Error: %s\n", gme_strerror( err ) ); getchar();
 		exit( EXIT_FAILURE );
 	}
 }

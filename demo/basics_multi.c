@@ -7,11 +7,11 @@
 #include <stdio.h>
 #include <string.h>
 
-void handle_error( const char *str )
+void handle_error( int err )
 {
-	if ( str )
+	if ( err )
 	{
-		printf( "Error: %s\n", str ); getchar();
+		printf( "Error: %s\n", gme_strerror( err ) ); getchar();
 		exit( EXIT_FAILURE );
 	}
 }

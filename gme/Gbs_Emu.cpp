@@ -64,14 +64,14 @@ static void copy_gbs_fields( Gbs_Emu::header_t const& h, track_info_t* out )
 blargg_err_t Gbs_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_gbs_fields( header_, out );
-	return nullptr;
+	return 0;
 }
 
 static blargg_err_t check_gbs_header( void const* header )
 {
 	if ( memcmp( header, "GBS", 3 ) )
-		return gme_wrong_file_type;
-	return nullptr;
+		return ERR_FILE_WRONG_TYPE;
+	return 0;
 }
 
 struct Gbs_File : Gme_Info_
@@ -84,7 +84,7 @@ struct Gbs_File : Gme_Info_
 	{
 		blargg_err_t err = in.read( &h, Gbs_Emu::header_size );
 		if ( err )
-			return (err == in.eof_error ? gme_wrong_file_type : err);
+			return (err == ERR_EOF ? ERR_FILE_WRONG_TYPE : err);
 
 		set_track_count( h.track_count );
 		return check_gbs_header( &h );
@@ -93,7 +93,7 @@ struct Gbs_File : Gme_Info_
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_gbs_fields( h, out );
-		return nullptr;
+		return 0;
 	}
 };
 
@@ -114,15 +114,15 @@ blargg_err_t Gbs_Emu::load_( Data_Reader& in )
 	RETURN_ERR( check_gbs_header( &header_ ) );
 
 	if ( header_.vers != 1 )
-		set_warning( "Unknown file version" );
+		set_warning( WARN_FILE_VERSION_UNKNOWN );
 
 	if ( header_.timer_mode & 0x78 )
-		set_warning( "Invalid timer mode" );
+		set_warning( WARN_TIMER_MODE_INVALID );
 
 	unsigned load_addr = get_le16( header_.load_addr );
 	if ( (header_.load_addr [1] | header_.init_addr [1] | header_.play_addr [1]) > 0x7F ||
 			load_addr < 0x400 )
-		set_warning( "Invalid load/init/play address" );
+		set_warning( WARN_ADDRESS_INVALID_LOADINITPLAY );
 
 	set_voice_count( Gb_Apu::osc_count );
 
@@ -237,7 +237,7 @@ blargg_err_t Gbs_Emu::start_track_( int track )
 	cpu_time  = 0;
 	cpu_jsr( get_le16( header_.init_addr ) );
 
-	return nullptr;
+	return 0;
 }
 
 blargg_err_t Gbs_Emu::run_clocks( blip_time_t& duration, int )
@@ -274,7 +274,7 @@ blargg_err_t Gbs_Emu::run_clocks( blip_time_t& duration, int )
 			}
 			else
 			{
-				set_warning( "Emulation error (illegal/unsupported instruction)" );
+				set_warning( WARN_EMU_INSTRUCTION_ILLEGAL );
 				debug_printf( "Bad opcode $%.2x at $%.4x\n",
 						(int) *cpu::get_code( cpu::r.pc ), (int) cpu::r.pc );
 				cpu::r.pc = (cpu::r.pc + 1) & 0xFFFF;
@@ -289,5 +289,5 @@ blargg_err_t Gbs_Emu::run_clocks( blip_time_t& duration, int )
 		next_play = 0;
 	apu.end_frame( cpu_time );
 
-	return nullptr;
+	return 0;
 }

@@ -74,7 +74,7 @@ blargg_err_t Snes_Spc::init()
 	#endif
 
 	reset();
-	return nullptr;
+	return 0;
 }
 
 void Snes_Spc::init_rom( uint8_t const in [rom_size] )
@@ -156,7 +156,7 @@ void Snes_Spc::regs_loaded()
 
 void Snes_Spc::reset_time_regs()
 {
-	m.cpu_error     = nullptr;
+	m.cpu_error     = 0;
 	m.echo_accessed = 0;
 	m.spc_time      = 0;
 	m.dsp_time      = 0;
@@ -221,10 +221,10 @@ blargg_err_t Snes_Spc::load_spc( void const* data, long size )
 
 	// Check signature and file size
 	if ( size < signature_size || memcmp( spc, signature, 27 ) )
-		return "Not an SPC file";
+		return ERR_FILE_WRONG_TYPE;
 
 	if ( size < spc_min_file_size )
-		return "Corrupt SPC file";
+		return ERR_FILE_CORRUPT;
 
 	// CPU registers
 	m.cpu_regs.pc  = spc->pch * 0x100 + spc->pcl;
@@ -243,7 +243,7 @@ blargg_err_t Snes_Spc::load_spc( void const* data, long size )
 
 	reset_time_regs();
 
-	return nullptr;
+	return 0;
 }
 
 void Snes_Spc::clear_echo()
@@ -346,8 +346,8 @@ blargg_err_t Snes_Spc::play( int count, sample_t* out )
 		end_frame( count * (clocks_per_sample / 2) );
 	}
 
-	const char* err = m.cpu_error;
-	m.cpu_error = nullptr;
+	blargg_err_t err = m.cpu_error;
+	m.cpu_error = 0;
 	return err;
 }
 

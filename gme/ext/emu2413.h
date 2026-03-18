@@ -1,6 +1,7 @@
 #ifndef _EMU2413_H_
 #define _EMU2413_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -189,7 +190,7 @@ int16_t OPLL_calc(OPLL *opll);
  */
 void OPLL_calcStereo(OPLL *opll, int32_t out[2]);
 
-void OPLL_setPatch(OPLL *, const uint8_t *dump);
+void OPLL_setPatch(OPLL *, const uint8_t *dump, size_t dump_len);
 void OPLL_copyPatch(OPLL *, int32_t, OPLL_PATCH *);
 
 /**
@@ -198,7 +199,7 @@ void OPLL_copyPatch(OPLL *, int32_t, OPLL_PATCH *);
  */
 void OPLL_forceRefresh(OPLL *);
 
-void OPLL_dumpToPatch(const uint8_t *dump, OPLL_PATCH *patch);
+void OPLL_dumpToPatch(const uint8_t *dump, size_t dump_len, OPLL_PATCH *patch);
 void OPLL_patchToDump(const OPLL_PATCH *patch, uint8_t *dump);
 void OPLL_getDefaultPatch(int32_t type, int32_t num, OPLL_PATCH *);
 

@@ -60,6 +60,9 @@ void Hes_Apu_Adpcm::set_output( int i, Blip_Buffer* center, Blip_Buffer* left, B
 	{
 		left  = center;
 		right = center;
+		// Actually unused, just shut up the warning:
+		(void)left;
+		(void)right;
 	}
 	
 	output = center;

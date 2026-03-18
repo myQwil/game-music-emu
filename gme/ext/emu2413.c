@@ -1391,7 +1391,9 @@ void OPLL_setPanFine(OPLL *opll, uint32_t ch, float pan[2]) {
   opll->pan_fine[ch & 15][1] = pan[1];
 }
 
-void OPLL_dumpToPatch(const uint8_t *dump, OPLL_PATCH *patch) {
+void OPLL_dumpToPatch(const uint8_t *dump, size_t dump_len, OPLL_PATCH *patch) {
+  if (dump_len < 8)
+    return;
   patch[0].AM = (dump[0] >> 7) & 1;
   patch[1].AM = (dump[1] >> 7) & 1;
   patch[0].PM = (dump[0] >> 6) & 1;
@@ -1421,14 +1423,18 @@ void OPLL_dumpToPatch(const uint8_t *dump, OPLL_PATCH *patch) {
 }
 
 void OPLL_getDefaultPatch(int32_t type, int32_t num, OPLL_PATCH *patch) {
-  OPLL_dumpToPatch(default_inst[type] + num * 8, patch);
+  if (type < 0 || type >= OPLL_TONE_NUM || num < 0 || num >= 19)
+    return;
+  OPLL_dumpToPatch(default_inst[type] + num * 8, 8, patch);
 }
 
-void OPLL_setPatch(OPLL *opll, const uint8_t *dump) {
+void OPLL_setPatch(OPLL *opll, const uint8_t *dump, size_t dump_len) {
   OPLL_PATCH patch[2];
   int i;
+  if (dump_len < 19 * 8)
+    return;
   for (i = 0; i < 19; i++) {
-    OPLL_dumpToPatch(dump + i * 8, patch);
+    OPLL_dumpToPatch(dump + i * 8, 8, patch);
     memcpy(&opll->patch[i * 2 + 0], &patch[0], sizeof(OPLL_PATCH));
     memcpy(&opll->patch[i * 2 + 1], &patch[1], sizeof(OPLL_PATCH));
   }

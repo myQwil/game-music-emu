@@ -93,8 +93,10 @@ void Hes_Apu_Adpcm::run_until( blip_time_t end_time )
 					volume = 0xFF - ( 0xFF * fadecount / fadetimer );
 				}
 			}
-            next_timer += 7159.091;
+
+			next_timer += 7159.091;
 		}
+
 		int amp;
 		if ( state.ad_low_nibble )
 		{
@@ -112,19 +114,24 @@ void Hes_Apu_Adpcm::run_until( blip_time_t end_time )
 			amp = adpcm_decode( state.pcmbuf[ state.playptr ] >> 4 );
 			state.ad_low_nibble = true;
 		}
+
 		amp = amp * volume / 0xFF;
 		int delta = amp - last_amp;
+
 		if ( output && delta )
 		{
 			last_amp = amp;
 			synth.offset_inline( last_time, delta, output );
 		}
+
 		last_time += state.freq;
 	}
 
 	if ( !state.playflag )
 	{
-        while ( next_timer <= end_time ) next_timer += 7159.091;
+		while ( next_timer <= end_time )
+			next_timer += 7159.091;
+
 		last_time = end_time;
 	}
 	
@@ -171,20 +178,25 @@ void Hes_Apu_Adpcm::write_data( blip_time_t time, int addr, int data )
 			state.length = 0;
 			state.volume = 0xFF;
 		}
+
 		if ( ( data & 3 ) == 3 )
 		{
 			state.writeptr = state.addr;
 		}
+
 		if ( data & 8 )
 		{
 			state.readptr = state.addr ? state.addr - 1 : state.addr;
 		}
+
 		if ( data & 0x10 )
 		{
 			state.length = state.addr;
 		}
+
 		state.repeatflag = data & 0x20;
 		state.playflag = data & 0x40;
+
 		if ( state.playflag )
 		{
 			state.playptr = state.readptr;
@@ -195,7 +207,7 @@ void Hes_Apu_Adpcm::write_data( blip_time_t time, int addr, int data )
 		}
 		break;
 	case 14:
-        state.freq = 7159091 / ( 32000 / ( 16 - ( data & 15 ) ) );
+		state.freq = 7159091 / ( 32000 / ( 16 - ( data & 15 ) ) );
 		break;
 	case 15:
 		switch ( data & 15 )
@@ -258,7 +270,7 @@ void Hes_Apu_Adpcm::end_frame( blip_time_t end_time )
 		output->set_modified();
 }
 
-static short stepsize[49] = {
+static const short stepsize[49] = {
   16,  17,  19,  21,  23,  25,  28,
   31,  34,  37,  41,  45,  50,  55,
   60,  66,  73,  80,  88,  97, 107,
@@ -273,6 +285,7 @@ int Hes_Apu_Adpcm::adpcm_decode( int code )
 	int step = stepsize[state.ad_ref_index];
 	int delta;
 	int c = code & 7;
+
 #if 1
 	delta = 0;
 	if ( c & 4 ) delta += step;
@@ -285,6 +298,7 @@ int Hes_Apu_Adpcm::adpcm_decode( int code )
 #else
 	delta = ( ( c + c + 1 ) * step ) / 8; // maybe faster, but introduces rounding
 #endif
+
 	if ( c != code )
 	{
 		state.ad_sample -= delta;
@@ -301,7 +315,9 @@ int Hes_Apu_Adpcm::adpcm_decode( int code )
 	static int const steps [8] = {
 		-1, -1, -1, -1, 2, 4, 6, 8
 	};
+
 	state.ad_ref_index += steps [c];
+
 	if ( state.ad_ref_index < 0 )
 		state.ad_ref_index = 0;
 	else if ( state.ad_ref_index > 48 )

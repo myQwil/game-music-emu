@@ -298,6 +298,7 @@ void Hes_Emu::cpu_write_( hes_addr_t addr, int data )
 		apu.write_data( t, addr, data );
 		return;
 	}
+
 	if ( (unsigned) (addr - adpcm.io_addr) < adpcm.io_size )
 	{
 		time_t t = min( time(), end_time() + 6 );

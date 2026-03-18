@@ -90,11 +90,14 @@ void Nes_Vrc7_Apu::write_data( blip_time_t time, int data )
 	int chan = addr & 15;
 	if ( (unsigned) type < 3 && chan < osc_count )
 		oscs [chan].regs [type] = data;
+
 	if ( addr < 0x08 )
-	  inst [addr] = data;
+		inst [addr] = data;
+
 
 	if ( time > next_time )
 		run_until( time );
+
 	OPLL_writeIO( (OPLL *) opll, 0, addr );
 	OPLL_writeIO( (OPLL *) opll, 1, data );
 }
@@ -135,13 +138,14 @@ void Nes_Vrc7_Apu::load_snapshot( vrc7_snapshot_t const& in )
 	next_time = in.delay;
 	write_reg( in.latch );
 	int i;
+
 	for ( i = 0; i < osc_count; ++i )
 	{
 		for ( int j = 0; j < 3; ++j )
 			oscs [i].regs [j] = in.regs [i] [j];
 	}
 
-  memcpy( inst, in.inst, 8 );
+	memcpy( inst, in.inst, 8 );
 	for ( i = 0; i < 8; ++i )
 	{
 		OPLL_writeIO( (OPLL *) opll, 0, i );
@@ -166,6 +170,7 @@ void Nes_Vrc7_Apu::run_until( blip_time_t end_time )
 	void* opll = this->opll; // cache
 	Blip_Buffer* const mono_output = mono.output;
 	int32_t buffer [2];
+
 	if ( mono_output )
 	{
 		// optimal case
@@ -188,7 +193,7 @@ void Nes_Vrc7_Apu::run_until( blip_time_t end_time )
 		mono.last_amp = 0;
 		do
 		{
-            OPLL_calc_stereo( (OPLL *) opll, buffer );
+			OPLL_calc_stereo( (OPLL *) opll, buffer );
 			for ( int i = 0; i < osc_count; ++i )
 			{
 				Vrc7_Osc& osc = oscs [i];
@@ -207,5 +212,6 @@ void Nes_Vrc7_Apu::run_until( blip_time_t end_time )
 		}
 		while ( time < end_time );
 	}
+
 	next_time = time;
 }

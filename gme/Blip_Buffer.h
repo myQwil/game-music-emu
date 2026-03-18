@@ -6,8 +6,8 @@
 #define BLIP_BUFFER_H
 
 	// internal
-	#include <limits.h>
-	#include <stdint.h>
+	#include <climits>
+	#include <cstdint>
 	#if INT_MAX < 0x7FFFFFFF
 		#error "int must be at least 32 bits"
 	#endif
@@ -337,7 +337,7 @@ private:
 
 // End of public interface
 
-#include <assert.h>
+#include <cassert>
 
 template<int quality,int range>
 inline void Blip_Synth<quality,range>::offset_resampled( blip_resampled_time_t time,

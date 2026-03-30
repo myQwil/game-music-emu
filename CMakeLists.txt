@@ -67,6 +67,7 @@ option(GME_BUILD_STATIC "Build static library" ON)
 option(GME_BUILD_FRAMEWORK "Build framework instead of dylib on macOS" ${BUILD_FRAMEWORK})
 
 option(GME_ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ${ENABLE_UBSAN})
+option(GME_ENABLE_ASAN "Enable Adress Sanitizer error-checking" OFF)
 option(GME_BUILD_TESTING "Build demo tests" ${BUILD_TESTING})
 option(GME_BUILD_EXAMPLES "Add example project build rules" ${GME_IS_ROOT})
 
@@ -105,8 +106,20 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND GME_ENABLE_UBSAN)
     # GCC needs -static-libubsan
     if(NOT GME_BUILD_SHARED AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -static-libubsan")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=undefined -static-libubsan")
     else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=undefined")
+    endif()
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND GME_ENABLE_ASAN)
+    if(NOT GME_BUILD_SHARED AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -static-libasan")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -static-libasan")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
     endif()
 endif()
 

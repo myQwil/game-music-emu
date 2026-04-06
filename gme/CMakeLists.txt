@@ -330,7 +330,7 @@ elseif(UNIX)
     execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${temporary_sym_file}" "${generated_sym_file}")
 
     cmake_push_check_state()
-    set(CMAKE_REQUIRED_FLAGS "-Wl,-version-script='${generated_sym_file}'")
+    set(CMAKE_REQUIRED_FLAGS "-Wl,-version-script=\"${generated_sym_file}\"")
     check_cxx_source_compiles("int main() { return 0;}" LINKER_SUPPORTS_VERSION_SCRIPT)
     cmake_pop_check_state()
 endif()

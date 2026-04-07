@@ -398,7 +398,7 @@ if(GME_BUILD_SHARED)
         set_property(TARGET gme_shared APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-exported_symbols_list,'${generated_sym_file}'")
         set_property(TARGET gme_shared APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
     elseif(UNIX AND LINKER_SUPPORTS_VERSION_SCRIPT)
-        set_property(TARGET gme_shared APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-version-script='${generated_sym_file}'")
+        set_property(TARGET gme_shared APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-version-script=\"${generated_sym_file}\"")
         set_property(TARGET gme_shared APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
     endif()
 

@@ -1204,22 +1204,17 @@ void OPLL_setChipType(OPLL *opll, uint8_t type) { opll->chip_type = type; }
 void OPLL_writeReg(OPLL *opll, uint32_t reg, uint8_t data) {
   int ch, i;
 
-  if (reg >= 0x40)
-    return;
-
   /* mirror registers */
   if ((0x19 <= reg && reg <= 0x1f) || (0x29 <= reg && reg <= 0x2f) || (0x39 <= reg && reg <= 0x3f)) {
     reg -= 9;
   }
 
-  #if defined(__GNUC__) && (__GNUC__ >= 7)
-  #pragma GCC diagnostic push
-  #pragma GCC diagnostic ignored "-Wstringop-overflow"
-  #endif
+  /* The boundary check must be placed at the previous line to the array
+     assignment to avoid the false -Wstringop-overflow warning. */
+  if (reg >= 0x40)
+    return;
+
   opll->reg[reg] = (uint8_t)data;
-  #if defined(__GNUC__) && (__GNUC__ >= 7)
-  #pragma GCC diagnostic pop
-  #endif
 
   switch (reg) {
   case 0x00:

@@ -1,6 +1,7 @@
 # Game_Music_Emu Change Log
 
 # 0.6.5:
+## Most importand changes
 * Removed CPP demo as it uses private API.
 * Reworked demos so they no longer use private API.
 * Implemented some undocumented OPcodes for NES CPU (Thanks to @drfliemost for the contribution) (#86)
